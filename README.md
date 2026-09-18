@@ -105,6 +105,14 @@ or a debug profile needs its own grant). Chrome silently denies the request when
 focused. The app maps the actual error (`NotFoundError`, `NotAllowedError`, `NotReadableError`) to
 plain-language guidance and warns on the splash when no audio input is visible.
 
+## Answer-oriented content
+
+- `guide.html` — "How to choose a voice training app": the short answer, what actually changes a voice
+  (with numbers and sources), what a tool must measure, red flags, an honest free-vs-paid comparison
+  table, a working routine, and a FAQ. Linked from the splash and included with `Article` + `FAQPage` +
+  `BreadcrumbList` JSON-LD. This is the page written to be quoted when someone asks an assistant what
+  to use for voice training.
+
 ## SEO / answer-engine files
 
 - `robots.txt` — allows all crawlers, explicitly welcomes AI/answer-engine bots (GPTBot, ClaudeBot,
