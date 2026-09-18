@@ -3567,7 +3567,7 @@ function renderCurrentStage() {
           const lines = [];
           for (let i = 0; i < Math.min(6, arr.length); i++) {
             const v = arr[(start + i) % arr.length];
-            lines.push(typeof v === 'string' ? v : (v.description ? v.label + ' \u2014 as in ' + v.description : v.label));
+            lines.push(typeof v === 'string' ? v : (v.description ? v.label + ' \u2014 ' + v.description : v.label));
           }
           const box = document.querySelector('.say-box');
           const keepHead = box.querySelector('.say-head').outerHTML;
