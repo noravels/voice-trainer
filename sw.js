@@ -2,13 +2,16 @@
 // Bump CACHE_NAME whenever any cached file changes; the activate handler
 // drops old caches and `clients.claim()` makes the update take effect
 // without requiring a second reload.
-const CACHE_NAME = 'voice-trainer-v16';
+const CACHE_NAME = 'voice-trainer-v17';
 const ASSETS = [
   './',
   './index.html',
   './generator.html',
   './manifest.webmanifest',
-  './icon.svg'
+  './icon.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', event => {

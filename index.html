@@ -3,7 +3,119 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Voice Training</title>
+<title>Voice Trainer — free trans voice training in your browser (pitch, resonance, blend)</title>
+<meta name="description" content="A free browser-based trans voice training app: guided 15–20 minute routine for pitch, resonance, vocal weight and prosody, with a live pitch graph and spectrogram. Feminine and androgynous practice paths, English and Turkish practice material, progress and recordings stay on your device — no account, no uploads.">
+<link rel="canonical" href="https://voice.noravels.com/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="noravels">
+<meta name="keywords" content="trans voice training, voice feminization app, feminise your voice, transgender voice practice, resonance training, vocal weight, pitch training, spectrogram, trans voice app, ücretsiz ses eğitimi, trans ses egzersizi">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Voice Trainer">
+<meta property="og:title" content="Voice Trainer — free trans voice training in your browser">
+<meta property="og:description" content="Guided 15–20 minute routine for pitch, resonance, vocal weight and prosody. Live pitch graph + spectrogram. Targets set from published acoustics research. No account, nothing leaves your device.">
+<meta property="og:url" content="https://voice.noravels.com/">
+<meta property="og:image" content="https://voice.noravels.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Voice Trainer — a pitch graph and the words: free trans voice training that runs entirely in your browser">
+<meta property="og:locale" content="en">
+<meta property="og:locale:alternate" content="tr_TR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Voice Trainer — free trans voice training in your browser">
+<meta name="twitter:description" content="Pitch, resonance, blend and prosody in one guided routine. Live pitch graph + spectrogram. On-device only: no account, no uploads.">
+<meta name="twitter:image" content="https://voice.noravels.com/og-image.png">
+<meta name="twitter:image:alt" content="Voice Trainer — free trans voice training that runs entirely in your browser">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": "https://voice.noravels.com/#app",
+      "name": "Voice Trainer",
+      "alternateName": "Trans Voice Trainer",
+      "url": "https://voice.noravels.com/",
+      "description": "Free browser-based trans voice training app with a guided 15-20 minute routine covering resonance, tongue root, register blend, volume, sentences, prosody and fluidity, plus a live pitch graph and spectrogram. Runs entirely client-side.",
+      "applicationCategory": "HealthApplication",
+      "applicationSubCategory": "Voice training",
+      "operatingSystem": "Any (modern browser: Chrome, Safari, Firefox, Edge)",
+      "browserRequirements": "Requires microphone access and JavaScript. Works offline once loaded (service worker).",
+      "isAccessibleForFree": true,
+      "inLanguage": ["en", "tr"],
+      "softwareVersion": "1.7+",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Guided voice training routine in fixed stages: check-in, warm-up, resonance, register blend, volume, sentences, weekly benchmark, prosody, fluidity",
+        "Practice-first and foundation-first learning paths",
+        "Live pitch tracking with note naming and cents feedback",
+        "Spectrogram view for watching resonance move",
+        "Brightness (spectral) trend and H1-H2 softness readout",
+        "Weekly benchmark on a locked sentence list for honest week-to-week comparison",
+        "On-device progress, voice-health check-in and recording archive (IndexedDB)",
+        "Export and import of all data as a single file",
+        "English and Turkish practice material, extensible to more languages",
+        "Installable as a PWA, works offline"
+      ],
+      "publisher": { "@id": "https://voice.noravels.com/#publisher" }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://voice.noravels.com/#publisher",
+      "name": "noravels",
+      "url": "https://noravels.com/"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://voice.noravels.com/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Voice Trainer free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Voice Trainer is free and needs no account or sign-up. It is a static web app: open the page and practise." }
+        },
+        {
+          "@type": "Question",
+          "name": "Do my recordings or progress leave my device?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Recordings, progress history and your voice profile are stored inside your browser (localStorage and IndexedDB). Nothing is uploaded and there is no server-side account. To move to another device or browser you export a single backup file and import it there." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Voice Trainer affiliated with VAMethod or TransVoiceLessons?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Voice Trainer is an independent practice aid whose routine was compiled from public material by VAMethod (Jimmy Chen), TransVoiceLessons and the r/transvoice community guides. It is not affiliated with or endorsed by any of them, and the app credits them." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does raising my pitch alone make my voice sound feminine?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No, and that is the point of the app. Speaking fundamental frequency explains only about 41.6% of the variance in how listeners perceive a voice's gender (meta-analysis of 38 studies, Leung, Oates &amp; Chan 2018), so Voice Trainer treats pitch as a guard rail and puts most of the work into resonance (tongue root, vocal tract shape), vocal weight or phonation, and prosody." }
+        },
+        {
+          "@type": "Question",
+          "name": "What does a session look like and how often should I practise?",
+          "acceptedAnswer": { "@type": "Answer", "text": "About 15-20 minutes through fixed stages: check-in, warm-up, resonance, register blend, volume, sentences, prosody and fluidity, with a benchmark stage once a week that reads the same locked sentence list so comparisons stay honest. Short sessions 5-6 days a week beat occasional long ones; there is deliberately no streak counter." }
+        },
+        {
+          "@type": "Question",
+          "name": "Which languages does it support?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Practice material (sentence lists, emotion prompts, vowels) currently comes in English and Turkish, and the architecture is built to accept more languages. Because prosody is language-specific, each language has its own material." }
+        },
+        {
+          "@type": "Question",
+          "name": "Does it work on a phone?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. It is a responsive web app that can be installed to the home screen (PWA) and works offline after loading. On iOS you should keep the page in the foreground and tap Start so the browser can ask for microphone access." }
+        },
+        {
+          "@type": "Question",
+          "name": "Is this a replacement for speech therapy?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. It is a self-practice tool, not medical care or speech therapy. It includes a voice-health check-in and stops you when pain or fatigue is flagged. Hoarseness lasting more than a day or two deserves rest, and more than two weeks deserves an ENT assessment." }
+        }
+      ]
+    }
+  ]
+}
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0d1117">
 <meta name="color-scheme" content="dark">
@@ -300,10 +412,27 @@ body:has(#main.focus-mode) { overflow: hidden; }
 <body>
 
 <div id="splash">
-  <h1 id="splashTitle">Voice Training</h1>
+  <h1 id="splashTitle">Voice Trainer</h1>
+  <p id="routineLabel" style="color:var(--accent);font-weight:600;font-size:14px;"></p>
   <div id="onboardIntro" style="display:none;"></div>
   <div id="lastPracticeStrip" style="display:none;font-size:13px;color:var(--text2);max-width:460px;"></div>
-  <p id="splashDesc">Real-time pitch detection, guided exercises, and recording.</p>
+  <p id="splashDesc">A free trans voice training tool that runs entirely in your browser. A guided 15&ndash;20 minute routine covers <b>resonance</b> (tongue root and vocal-tract shape), <b>register blend</b>, <b>vocal weight</b>, <b>volume</b>, <b>sentences</b>, <b>prosody</b> and <b>fluidity</b>, with a live pitch graph and a spectrogram to show what is changing. Practice material comes in English or Turkish; every recording, progress entry and profile stays on this device.</p>
+  <div style="max-width:680px;text-align:left;font-size:13px;line-height:1.7;color:var(--text2);">
+    <b style="color:var(--text);">What it is:</b> a self-practice aid for feminising or androgynous voice work &mdash; not a course, not an account, and not medical care. It is deliberately honest about what pitch can and cannot do: speaking fundamental frequency explains only about 42% of how a voice is read, so the routine puts most of its weight on resonance and prosody, and treats pitch as a guard rail.
+  </div>
+  <details class="device-setup" style="max-width:680px;">
+    <summary>Frequently asked questions</summary>
+    <div style="font-size:13px;line-height:1.75;color:var(--text2);padding:6px 2px;">
+      <div><b style="color:var(--text);">Is it free?</b> Yes &mdash; no account, no sign-up, no upsell. Open the page and practise.</div>
+      <div style="margin-top:8px;"><b style="color:var(--text);">Do my recordings or progress leave my device?</b> No. Recordings, progress and your voice profile are stored inside this browser (localStorage and IndexedDB). Nothing is uploaded; moving to another device means exporting one backup file and importing it there.</div>
+      <div style="margin-top:8px;"><b style="color:var(--text);">Is it affiliated with VAMethod or TransVoiceLessons?</b> No. The routine was compiled from public material by VAMethod (Jimmy Chen), TransVoiceLessons and the r/transvoice community guides. This app is independent and not endorsed by any of them.</div>
+      <div style="margin-top:8px;"><b style="color:var(--text);">Does raising my pitch alone make my voice sound feminine?</b> No. Speaking F0 explains only ~41.6% of perceived gender (meta-analysis of 38 studies). Resonance, vocal weight and prosody carry the rest, which is why the routine trains them directly.</div>
+      <div style="margin-top:8px;"><b style="color:var(--text);">How often should I practise?</b> 15&ndash;20 focused minutes, 5&ndash;6 days a week, plus one benchmark read a week. Short and consistent beats long and rare, and there is deliberately no streak counter to punish a rest day.</div>
+      <div style="margin-top:8px;"><b style="color:var(--text);">Which languages are supported?</b> English and Turkish practice material today (sentence lists, emotion prompts, vowels); prosody is language-specific, so each language keeps its own material and more can be added.</div>
+      <div style="margin-top:8px;"><b style="color:var(--text);">Does it work on a phone?</b> Yes &mdash; it is installable to the home screen and works offline after loading. On iOS keep the page in the foreground and tap Start so the browser can ask for microphone access.</div>
+      <div style="margin-top:8px;"><b style="color:var(--text);">Is it a replacement for speech therapy?</b> No. It is self-practice, not medical care. The app has a voice-health check-in and stops you when pain or fatigue is flagged; hoarseness beyond a day or two deserves rest and beyond two weeks deserves an ENT assessment.</div>
+    </div>
+  </details>
   <p id="splashClient" style="display:none;color:var(--accent);font-weight:600;"></p>
   <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);">
     <span>Default view:</span>
@@ -1406,8 +1535,8 @@ window.__applyRoutinePath = function(pathId) {
   ROUTINE = pathId === 'foundation-first' ? ROUTINE_FOUNDATION : ROUTINE_PRACTICE;
   if (window.__applyProfileToRoutine) window.__applyProfileToRoutine();
   try {
-    document.getElementById('splashTitle').textContent = ROUTINE.name;
-    document.getElementById('splashDesc').textContent = ROUTINE.description;
+    document.getElementById('routineLabel').textContent = ROUTINE.name;
+    // splash copy is fixed marketing/SEO text now; the routine name is shown separately
   } catch (e) {}
   // If a session is open, reset to the first stage of the new routine.
   try {
@@ -3783,8 +3912,8 @@ function startSessionTimer() {
 
 // ─── INIT ────────────────────────────────────────────────────────────
 // Apply ROUTINE metadata to splash
-if (ROUTINE.name) document.getElementById('splashTitle').textContent = ROUTINE.name;
-if (ROUTINE.description) document.getElementById('splashDesc').textContent = ROUTINE.description;
+if (ROUTINE.name) { const rl = document.getElementById('routineLabel'); if (rl) rl.textContent = ROUTINE.name; }
+// splash copy stays as written (SEO/intro text); routine details are shown in #routineLabel
 if (ROUTINE.client) {
   const clientEl = document.getElementById('splashClient');
   clientEl.textContent = 'Prepared for: ' + ROUTINE.client;

@@ -1,25 +1,20 @@
 {
-  "name": "Voice Trainer",
+  "name": "Voice Trainer — trans voice training in your browser",
   "short_name": "Voice Trainer",
-  "description": "Practice pitch, resonance, and blend with a rolling pitch graph and spectrogram.",
+  "description": "Free guided trans voice training: pitch, resonance, blend and prosody with a live pitch graph and spectrogram. Practice material in English and Turkish. Progress and recordings stay on your device.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#0d1117",
   "theme_color": "#0d1117",
+  "lang": "en",
+  "categories": ["health", "education", "lifestyle"],
   "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
   ]
 }

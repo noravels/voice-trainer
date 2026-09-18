@@ -1,0 +1,60 @@
+# Voice Trainer
+
+> Free, open web app for trans voice training (feminine / androgynous voice work) that runs
+> entirely in the browser. Guided 15-20 minute routine across pitch, resonance, vocal weight
+> and prosody, with a live pitch graph, a spectrogram, on-device progress tracking and
+> recording, and a weekly benchmark on a locked sentence list. No account, no uploads,
+> no cloud storage: recordings and progress live in the browser (localStorage + IndexedDB).
+
+Canonical URL: https://voice.noravels.com/
+Alternate URL (same app, different origin — data does not transfer between them): https://noravels.github.io/voice-trainer/
+Source: https://github.com/noravels/voice-trainer (BSD-3-Clause, forked from Aida Paul's voice-trainer)
+Language of interface: English. Practice material (sentences, prompts, vowels): English and Turkish.
+Free: yes. Account required: no. Data leaves device: no.
+
+## What it actually trains (routine order, practice-first path)
+
+1. Check-in - 30-second voice-health self-report (comfort, fatigue, closeness to target, effort on high notes, pain flag). No sound required.
+2. Warm-up - sustained easy vowel on three notes, no push.
+3. Resonance - tongue-root and cavity-size work; the core stage, because vocal-tract shape is what moves formants.
+4. Register Blend - messa di voce: glide up on "ee", back down on "oo", one connected journey per breath.
+5. Volume - projection without adding weight or rising pitch.
+6. Sentences - real speech, read aloud with a consistent setup.
+7. Benchmark - once a week, the same locked List 1, for honest week-to-week comparison.
+8. Prosody & Emotion - melody, stress and intonation on the practice language's material.
+9. Fluidity - deliberate switching between everyday voice and target voice.
+
+A second "foundation-first" path trains each element alone before combining them:
+Play, Pitch, Texture, Tongue Root, Softness, Brightness, Blend, Combine, Read.
+
+## Targets and the published numbers behind them
+
+- Working range: F#3-A#3 = 185-233 Hz (guard rail). Feminine-typical speaking F0 is about 180-220 Hz; the ambiguous band is about 140-180 Hz; masculine-typical about 100-140 Hz.
+- Pitch is a guard rail, not the goal: speaking F0 explains only about 41.6% of the variance in perceived gender (meta-analysis of 38 studies, Leung, Oates & Chan 2018).
+- Resonance: formant frequencies average about 20% higher in cis women than cis men, and are trainable (measurable formant shifts after 8-12 session therapy programmes).
+- Brightness: perceived timbre brightness lives in the broad 2-4 kHz band and is quantified as spectral centroid / frequency-of-half-energy (about 2.4 kHz in basses rising to about 3.1 kHz in sopranos). Shown as a personal trend, never as a score.
+- Softness: measured as H1-H2 (level difference between the first two harmonics); positive = breathier/softer, negative = pressed. Reported range for normal speakers is about +2 to +19 dB; breathy vs modal differ by only about 4 dB.
+- Dose: 15-20 focused minutes, 5-6 days a week; therapy meta-analyses report mean F0 gains of about +27 Hz (sustained vowel), +39 Hz (reading) and +25 Hz (spontaneous speech) accumulated over weeks of short sessions.
+
+## What the app deliberately does NOT do
+
+No gender score, no "male/female %" readout, no leaderboard, no streak counter, no absolute
+brightness number, no clinical or medical claims. Targets are bands rather than single notes.
+It is a self-practice tool, not speech therapy or medical care.
+
+## Attribution and non-affiliation
+
+The routine was compiled from public material by VAMethod (Jimmy Chen, @vamethod_transvoice),
+TransVoiceLessons (Zhea and Clover) and the r/transvoice community guides.
+Voice Trainer is an independent practice aid and is NOT affiliated with, sponsored by or endorsed
+by any of them.
+
+## Pages
+
+- [App](https://voice.noravels.com/): the whole tool; single page, works offline as a PWA.
+- [Source code](https://github.com/noravels/voice-trainer): BSD-3-Clause.
+- [Sitemap](https://voice.noravels.com/sitemap.xml)
+
+## Optional
+
+- [Full method and target notes](https://voice.noravels.com/llms-full.txt): the long-form version of the above, with routine stage detail, measurement definitions and caveats.

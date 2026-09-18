@@ -1,0 +1,90 @@
+# Voice Trainer — full method and target notes
+
+Long-form companion to https://voice.noravels.com/llms.txt. Everything here is stated in the app
+itself as well; nothing is behind a login, and the entire app is a single HTML file.
+
+## 1. What the tool is
+
+Voice Trainer is a client-side web application for practising trans voice (feminine and
+androgynous directions, plus a fluid practice mode). It is a static site: no server, no database,
+no user accounts, no telemetry. Loading it installs a service worker, after which it works offline.
+All state - voice profile, session history, check-in scores, recorded audio - is written to the
+browser's localStorage and IndexedDB on the user's own device. Cross-device movement is done by
+exporting a single JSON backup (with base64 audio) and importing it elsewhere.
+
+## 2. Learning paths
+
+Practice-first (default): Check-in, Warm-up, Resonance, Register Blend, Volume, Sentences,
+Benchmark (weekly), Prosody & Emotion, Fluidity.
+
+Foundation-first (instrument before gender shaping): Play, Pitch stabilisation, Texture
+(strong vs soft), Tongue Root, Softness alone, Brightness alone, Blend, Combine (setup), Read.
+
+## 3. The measurement vocabulary used in the app
+
+- Pitch (F0): height of the voice. Displayed as a live line with note names and cents deviation
+  from a target, over a 10-second rolling window.
+- Resonance: the size and shape of the space the sound vibrates in. Trained via tongue root and
+  cavity shape; vocal-tract length and larynx height are what shift formants.
+- Register blend: the smooth connection between the strong/heavy and soft/light textures of the
+  voice (some teachers say "chest" and "head"), practised with messa di voce glides.
+- Vocal weight / phonation: how pressed or relaxed the folds are. In the app this is measured as
+  H1-H2 in dB, where a positive value means relatively more first-harmonic energy (breathier,
+  lighter adduction) and a negative or near-zero value means pressed.
+- Brightness: the balance of high-frequency energy in the sound. Measured in the app as the ratio
+  of high-band (2.5-5.5 kHz) to mid/low-band (0.2-1 kHz) energy and shown only as a trend against
+  the user's own history.
+- Prosody: melody, rhythm, stress and intonation. The most language-specific layer, which is why
+  practice material is stored per language.
+
+## 4. Where the numeric targets come from
+
+- Feminine-typical speaking F0 about 180-220 Hz; ambiguous about 140-180 Hz; masculine-typical
+  about 100-140 Hz (UCSF Gender Affirming Health Program vocal-health guidance; clinical reviews).
+- Speaking F0 explains about 41.6% of perceived gender across 38 studies (Leung, Oates & Chan,
+  2018, Journal of Speech, Language and Hearing Research).
+- Speech-therapy meta-analysis (2023) reports mean F0 increases of about +27 Hz on sustained /a/,
+  +39 Hz in reading and +25 Hz in spontaneous speech after treatment programmes.
+- Formants are roughly 20% higher in cis women than cis men; formant frequencies shift measurably
+  after 8-12 session programmes (Schwarz et al.; Sodersten et al., summarised in a 2020
+  feminisation review, PMC7024865).
+- Timbre brightness: the 2-4 kHz band; quantified as spectral centroid / frequency of half energy,
+  from about 2.4 kHz in basses to about 3.1 kHz in sopranos (PMC9605961). Perceptual brightness
+  correlates with the spectral centroid but is not identical to it (Schubert & Wolfe, UNSW).
+- H1-H2: reported range for normal English speakers about +2 to +19 dB (Kreiman, Gerratt &
+  Antoñanzas-Barroso 2007, summarised in PMC2997695); breathy vs modal differ by about 4 dB and
+  listeners detect differences of roughly 2-4 dB.
+- Dose rationale: short daily sessions accumulate the gains above; the app therefore recommends
+  15-20 minutes on 5-6 days per week and contains no streak mechanic.
+
+## 5. How profile answers change the session
+
+- Goal: more-feminine / phone-comfort emphasise resonance and brightness prompts; androgynous opens
+  the range down to E3 (165 Hz); softer narrows the ceiling and emphasises softness work; explore
+  turns off targets and asks the user to compare two versions instead.
+- Timbre aim: brighter moves cues to smaller/forward cavity; softer or lighter lowers the ceiling
+  to G3 (196 Hz) and restrains volume work; forward moves the focus cue to the front of the mouth;
+  natural suppresses exaggerated cues.
+- Avoid list: "sounding too high" lowers the ceiling; "strain" additionally reduces volume work to
+  a single repetition at a comfortable level; "nasal" adds nasality checks; "artificial" and
+  "theatrical" shrink prosody cues.
+- Where the voice will be used: the chosen contexts (phone, work, friends, home, daily life) are
+  injected as extra speaking prompts.
+- Experience: "completely new" or "watched some videos" enables plain-language explanation lines on
+  every stage; regular practitioners and therapy clients get the lean interface.
+- Practice language: English and Turkish packs today (sentences, emotion prompts, fluidity prompts,
+  warm-up vowels, counting, glide material, resonance vowels). Adding a language means adding a pack.
+
+## 6. Safety posture
+
+The app opens every session with a check-in and a pain flag. Elevated fatigue or low comfort adds
+"keep it light" guidance to later stages; a pain flag tells the user to skip load-bearing stages.
+Persistent hoarseness is described as rest-worthy beyond a day or two and ENT-worthy beyond two
+weeks. The app states plainly that it is not medical care or speech therapy.
+
+## 7. Technical facts
+
+Single HTML file, vanilla JavaScript, no frameworks, no external requests (no fonts, analytics or
+CDNs). Pitch detection by autocorrelation (or FFT peak in spectrogram mode); spectrogram rendered
+on canvas; recordings stored as Blobs in IndexedDB; service worker for offline use and cache
+versioning. Licence BSD-3-Clause, forked from Aida Paul's voice-trainer.

@@ -1,0 +1,39 @@
+# Voice Trainer — https://voice.noravels.com
+# A free, client-side trans voice training app. Nothing here is user-specific,
+# there are no private areas, and no content is behind a login.
+
+User-agent: *
+Allow: /
+
+# Answer-engine and AI crawlers are explicitly welcome: the app's method,
+# targets and sources are the point, and they are documented in llms.txt.
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: Claude-User
+Allow: /
+User-agent: Claude-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: Perplexity-User
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: Applebot-Extended
+Allow: /
+User-agent: CCBot
+Allow: /
+User-agent: meta-externalagent
+Allow: /
+
+Sitemap: https://voice.noravels.com/sitemap.xml
+
+# Structured summary for answer engines
+# LLMs.txt: https://voice.noravels.com/llms.txt
+# Full method notes: https://voice.noravels.com/llms-full.txt
