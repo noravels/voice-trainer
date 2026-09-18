@@ -254,7 +254,26 @@ body:has(#main.focus-mode) { overflow: hidden; }
     <div style="margin-top:6px;"><b style="color:var(--accent);">Spacebar</b> pauses/unpauses the graph so you can analyze what's on screen.</div>
     <div style="margin-top:6px;"><b style="color:var(--accent);">Record</b> your full session or individual exercises for playback.</div>
   </div>
-  <details class="device-setup" id="deviceSetup">
+  <details class="device-setup" style="max-width:460px;">
+    <summary>Voice health &amp; safety</summary>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;padding:6px 2px;">
+      <div>&#8226; Pain, burning, or a strained feeling means <b style="color:var(--warning);">stop</b> &mdash; not push through. Rest beats any streak.</div>
+      <div style="margin-top:4px;">&#8226; Hoarseness lasting more than a day or two deserves rest, and more than two weeks deserves an ENT visit.</div>
+      <div style="margin-top:4px;">&#8226; Warm up gently, keep sessions short, and let loud moments live in resonance rather than in force.</div>
+      <div style="margin-top:4px;">&#8226; This is a self-practice space, not medical care or speech therapy.</div>
+    </div>
+  </details>
+  <details class="device-setup" style="max-width:460px;">
+    <summary>Plain-language glossary</summary>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;padding:6px 2px;">
+      <div><b style="color:var(--text);">Pitch</b> &mdash; how high or low your voice sounds.</div>
+      <div style="margin-top:4px;"><b style="color:var(--text);">Resonance</b> &mdash; the color or placement of the sound: dark/inner vs. bright/forward.</div>
+      <div style="margin-top:4px;"><b style="color:var(--text);">Vocal weight</b> &mdash; how heavy or pressed the voice feels; light weight reads softer.</div>
+      <div style="margin-top:4px;"><b style="color:var(--text);">Prosody</b> &mdash; the melody of speech: rhythm, stress, and intonation.</div>
+      <div style="margin-top:4px;"><b style="color:var(--text);">Formants</b> &mdash; measurable traces of resonance (shown as spectrogram bands; kept in the background until you want them).</div>
+    </div>
+  </details>
+  <details class="device-setup" style="max-width:460px;">
     <summary>Audio devices</summary>
     <div class="device-row">
       <label>Microphone</label>
@@ -270,6 +289,9 @@ body:has(#main.focus-mode) { overflow: hidden; }
     </div>
   </details>
   <button class="primary start-btn" id="startBtn">Start Practice Session</button>
+  <div style="font-size:12px;color:var(--text2);max-width:460px;">
+    Routine informed by <a href="https://www.instagram.com/vamethod_transvoice/" target="_blank" rel="noopener noreferrer" style="color:var(--text2);text-decoration:underline;">@vamethod_transvoice</a> (VAMethod) &mdash; an independent practice aid, not affiliated with or endorsed by VAMethod.
+  </div>
   <div id="splashError" class="splash-error-box" role="alert" aria-live="polite">
     <p id="splashErrorMsg"></p>
     <button id="splashRetryBtn" class="sm primary">Try again</button>
@@ -533,6 +555,11 @@ const ROUTINE = {
   description: "Daily 15\u201320 min routine: warm-up, resonance, volume, Turkish sentences, prosody, fluidity. Progress is tracked on this device.",
 
   stages: [
+    { id: 'checkin', name: '0. Check-in', short: 'Check-in', type: 'timed-hold', config: {
+      duration: 1,
+      instruction: 'Before starting: any throat pain, burning, or hoarseness? If yes, stop and rest \u2014 health beats streaks.',
+      note: null
+    }},
     { id: 'warmup', name: '1. Warm-up', short: 'Warm-up', type: 'sustained-tone', config: {
       notes: ['F3','G3','A3'], duration: 10,
       instruction: 'Sustain a lazy "ew" (as in "you") on each note for 10 seconds. Keep it buzzy and effortless \u2014 no push, no extra weight.',
@@ -3210,6 +3237,6 @@ document.addEventListener('keydown', e => {
   if (po.classList.contains('open')) { po.classList.remove('open'); return; }
 });
 </script>
-<div class="app-footer">v1.4.0 (noravels fem-fluid fork) &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
+<div class="app-footer">v1.5.0 (noravels fem-fluid fork) &middot; routine informed by <a href="https://www.instagram.com/vamethod_transvoice/">VAMethod</a> &middot; &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
 </body>
 </html>
