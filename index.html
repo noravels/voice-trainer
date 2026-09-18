@@ -1215,8 +1215,26 @@ function computePersonalPlan() {
   if (contexts.includes('friends') || contexts.includes('daily')) ctxPrompts.push('Everyday: order something at a counter, then thank the person.');
   if (contexts.includes('home')) ctxPrompts.push('Home: talk to yourself about what you did today while you tidy up.');
 
+  // "Explore" keeps cues neutral and asks you to compare rather than chase;
+  // "natural" suppresses exaggerated cues so the result still sounds like you.
+  const neutralCues = goal.includes('explore') || timbre.includes('natural');
+  const exploreMode = goal.includes('explore');
+
+  // One auditable line per onboarding question, so it is visible that every
+  // answer moved something.
+  const effects = [
+    ['Goal', goal.length ? goal.map(g => ({ 'more-feminine': 'resonance & brightness get the emphasis', 'androgynous': 'range opens lower (E3) and brightness cues stay moderate', 'softer': 'softness stage emphasised, volume stage kept gentle', 'phone-comfort': 'speaking stages aimed at calls', 'explore': 'neutral cues, plus compare-and-note prompts instead of targets' }[g])).filter(Boolean).join('; ') : 'nothing selected \u2014 defaults apply'],
+    ['Route', 'picks the whole stage order (' + (p.path && p.path[0] === 'foundation-first' ? 'Foundation-first' : 'Practice-first') + ')'],
+    ['Practice language', 'sentence lists, emotion and fluidity prompts come from: ' + (arr('practiceLanguages').length ? arr('practiceLanguages') : ['tr']).join(', ')],
+    ['Experience', explainLevel === 'full' ? 'adds a plain-language "new to this?" line to every stage' : 'lean mode: explanations hidden, you know the drill'],
+    ['Timbre aim', timbre.length ? timbre.map(t => ({ brighter: 'smaller/forward cavity cues in resonance & reading', softer: 'range narrowed to F3\u2013F#3, extra softness work', lighter: 'volume work restrained, texture stage emphasised', forward: 'focus cues moved to the front of the mouth', natural: 'exaggerated cues suppressed so it still sounds like you' }[t])).filter(Boolean).join('; ') : 'nothing selected \u2014 default cueing'],
+    ['Avoiding', avoid.length ? avoid.map(a => ({ 'too-high': 'ceiling lowered (top note G3)', artificial: 'prosody kept small, performance cues removed', nasal: 'nasality checks added to resonance & reading', strain: 'ceiling lowered again and volume stage reduced', theatrical: 'drama cues removed from emotion prompts' }[a])).filter(Boolean).join('; ') : 'no restrictions \u2014 full range of cues'],
+    ['Where you will use it', ctxPrompts.length ? ctxPrompts.length + ' context prompts injected into the speaking stages' : 'no contexts chosen \u2014 generic prompts'],
+  ];
+
   return {
     zone: { low, high },
+    neutralCues, exploreMode, effects,
     volumeLoud,
     volumeNote: volumeLoud ? '' : 'Your answers say volume work should stay gentle today \\u2014 keep everything at a comfortable speaking level. Loudness is not the goal here; ease is.',
     explainLevel,
@@ -1237,14 +1255,25 @@ function applyProfileToRoutine() {
   const plan = computePersonalPlan();
   ROUTINE.stages.forEach(st => {
     if (!st.config) return;
+    // keep the author's original text so re-applying is idempotent
+    if (st.config.__base === undefined) st.config.__base = st.config.instruction || '';
+    if (st.config.__baseReps === undefined) st.config.__baseReps = st.config.reps;
+    st.config.instruction = st.config.__base;
+    if (st.config.__baseReps !== undefined) st.config.reps = st.config.__baseReps;
     // zones
     if (st.config.zone) st.config.zone = { low: plan.zone.low, high: plan.zone.high };
-    // volume stage restraint
-    if (st.id === 'volume' || st.id === 'soft' || st.id === 'texture') {
-      if (st.id === 'volume' && !plan.volumeLoud) {
-        st.config.reps = 1;
-        st.config.instruction = 'Count 1\\u20133 at a comfortable level, same pitch, same ease. ' + plan.volumeNote;
-      }
+    // volume restraint (asked to avoid strain, or a softer/lighter aim)
+    if (st.id === 'volume' && !plan.volumeLoud) {
+      st.config.reps = 1;
+      st.config.instruction = 'Count 1\u20133 at a comfortable level, same pitch, same ease. ' + plan.volumeNote;
+    }
+    // neutral / natural aim: strip anything that pushes towards performance
+    if (plan.neutralCues && ['prosody', 'fluid', 'sentences'].includes(st.id)) {
+      st.config.instruction = st.config.instruction + ' Keep the melody small and real \u2014 this should still sound like you, not like an exercise.';
+    }
+    // exploring: compare instead of target
+    if (plan.exploreMode && ['prosody', 'fluid'].includes(st.id)) {
+      st.config.instruction = st.config.instruction + ' Say each line twice \u2014 first the way you normally would, then in the voice you are exploring \u2014 and notice which one you preferred.';
     }
   });
   window.__activePlan = plan;
@@ -3200,12 +3229,10 @@ function planCardHTML() {
   const plan = window.__activePlan || (window.__computePersonalPlan ? window.__computePersonalPlan() : null);
   let changes = '';
   if (plan) {
-    const rows = [
-      ['Working range set to', plan.zone.low + '\u2013' + plan.zone.high + (plan.zone.high === 'A#3' && plan.zone.low === 'F3' ? ' (the routine default)' : ' \u2014 derived from your goal, timbre aim and avoid list')],
-      ['Volume stage', plan.volumeLoud ? 'normal: you can practise projection' : 'kept gentle because you asked to avoid strain / wanted a softer sound'],
-      ['Speaking prompts', plan.ctxPrompts.length ? 'targeted at your chosen contexts (' + plan.ctxPrompts.length + ' extra context prompts)' : 'generic, because no contexts were chosen'],
-      ['Explanations', plan.explainLevel === 'full' ? 'on \u2014 every stage carries a plain-language "new to this?" line' : 'off \u2014 lean mode for experienced practice'],
-    ];
+    const rows = (plan.effects || []).concat([
+      ['Working range', plan.zone.low + '\u2013' + plan.zone.high + (plan.zone.high === 'A#3' && plan.zone.low === 'F3' ? ' (routine default)' : ' \u2014 narrowed/shifted by your goal, timbre aim and avoid list')],
+      ['Volume stage', plan.volumeLoud ? 'normal \u2014 projection allowed' : 'kept gentle (strain avoid / softer aim)'],
+    ]);
     changes = '<div class="plan-card" style="margin-top:10px;"><div class="plan-card-title">What your answers actually changed</div>' +
       rows.map(([k, v]) => `<div class="plan-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('') +
       '<div class="plan-card-foot">These are live: change an answer and the stages change with it.</div></div>';
@@ -3242,6 +3269,14 @@ function planNotesFor(stage) {
   if (avoid.includes('artificial') && ['prosody', 'fluid', 'read'].includes(id)) {
     notes.push(['avoid', 'You want to avoid sounding artificial \u2014 keep prosody smaller than feels impressive. Real speech, not a performance.']);
   }
+  const plan = window.__activePlan || {};
+  if (plan.neutralCues && ['resonance', 'soft', 'bright', 'prosody', 'fluid'].includes(id)) {
+    notes.push(['aim', 'Your aim is the natural / exploring route: keep every cue modest. If a change is obvious to you, it is probably too big.']);
+  }
+  if (plan.exploreMode && ['prosody', 'fluid', 'sentences'].includes(id)) {
+    notes.push(['aim', 'Exploring: say each line twice and note which version you liked better \u2014 there is no target to hit today.']);
+  }
+  if (!plan.neutralCues) {
   if (timbre.includes('brighter') && ['resonance', 'bright', 'sentences'].includes(id)) {
     notes.push(['aim', 'Your timbre aim is brighter: smaller cavity, tongue root up and forward.']);
   }
@@ -3250,6 +3285,7 @@ function planNotesFor(stage) {
   }
   if (timbre.includes('forward') && ['resonance', 'bright', 'prosody'].includes(id)) {
     notes.push(['aim', 'Your timbre aim is more forward: feel the sound in the front of the mouth, not the throat.']);
+  }
   }
   if (goal.includes('phone-comfort') && ['sentences', 'prosody', 'fluid', 'read'].includes(id)) {
     notes.push(['aim', 'Your goal is comfort on calls \u2014 imagine you are actually on the phone while you do this.']);
