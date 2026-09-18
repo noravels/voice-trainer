@@ -138,6 +138,9 @@ select { font-family: inherit; background: var(--surface2); color: var(--text); 
 .recordings { margin-top: 12px; }
 .recordings h4 { font-size: 13px; color: var(--text2); margin-bottom: 6px; }
 .rec-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+.rec-archive .rec-meta { flex: 1; min-width: 0; font-size: 11px; color: var(--text2); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-archive audio { height: 32px; max-width: 240px; }
+.rec-dl { color: var(--accent); font-size: 12px; text-decoration: none; padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; }
 .rec-item:last-child { border-bottom: none; }
 .rec-item span { font-size: 13px; color: var(--text2); }
 .rec-item audio { height: 40px; flex: 1; min-width: 0; }
@@ -449,6 +452,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div class="prog-bars" id="progBars"></div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">This session by stage</h3>
       <table class="prog-table"><thead><tr><th>Stage</th><th>Time</th><th>Target</th></tr></thead><tbody id="progStageTable"></tbody></table>
+      <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Recording archive (on this device)</h3>
+      <div id="progRecArchive" class="rec-archive"></div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Recent sessions</h3>
       <table class="prog-table"><thead><tr><th>Date</th><th>Time</th><th>Stages</th><th>Brightness</th></tr></thead><tbody id="progRecent"></tbody></table>
       <div class="modal-actions">
@@ -599,12 +604,17 @@ const ROUTINE = {
       instruction: 'Read each Turkish sentence inside the target zone (F3\u2013A#3). Keep vocal weight light and let the melody move naturally.',
       recording: true
     }},
-    { id: 'prosody', name: '5. Prosody & Emotion', short: 'Prosody', type: 'free-talk', config: {
+    { id: 'benchmark', name: '5. Weekly Benchmark', short: 'Benchmark', type: 'read-aloud', benchmark: true, config: {
+      listsKey: 'sentences', listIdx: 0, zone: { low: 'F3', high: 'A#3' },
+      instruction: 'Weekly benchmark: always read List 1 (locked) so recordings stay comparable week to week. Record the full read-through.',
+      recording: true
+    }},
+    { id: 'prosody', name: '6. Prosody & Emotion', short: 'Prosody', type: 'free-talk', config: {
       promptsKey: 'emotionStarters', zone: { low: 'F3', high: 'A#3' },
       instruction: 'Say the quoted Turkish line with the named emotion. Keep the pitch inside the zone \u2014 emotion comes from brightness and melody, not from pitch height.',
       recording: true
     }},
-    { id: 'fluid', name: '6. Fluidity', short: 'Fluid', type: 'free-talk', config: {
+    { id: 'fluid', name: '7. Fluidity', short: 'Fluid', type: 'free-talk', config: {
       promptsKey: 'fluidStarters', zone: { low: 'E3', high: 'C4' },
       instruction: 'Fluidity drill: move between your everyday voice and your target voice on purpose. A wider zone is fine \u2014 the goal is controlled switching.',
       recording: true
@@ -1181,6 +1191,105 @@ function makeRecorder(stream) {
 }
 function recorderBlobType() { return RECORDER_MIME || 'application/octet-stream'; }
 
+// ── Persistent recording archive (IndexedDB, noravels fork) ──
+// Every saved exercise recording also lands in a per-week archive so
+// recordings survive reloads and can be compared/downloaded later.
+// Nothing leaves the device.
+const RECDB = (() => {
+  let dbp = null;
+  function db() {
+    if (dbp) return dbp;
+    dbp = new Promise((resolve, reject) => {
+      const req = indexedDB.open('vt-recordings', 1);
+      req.onupgradeneeded = () => {
+        const d = req.result;
+        if (!d.objectStoreNames.contains('recordings')) {
+          const os = d.createObjectStore('recordings', { keyPath: 'id', autoIncrement: true });
+          os.createIndex('week', 'week'); // weekKey string, e.g. 2026-W38
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+    return dbp;
+  }
+  function weekKey(ts) {
+    const d = new Date(ts);
+    // ISO week: shift to Thursday-based week numbering
+    const t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7));
+    const week1 = new Date(t.getFullYear(), 0, 4);
+    const wk = 1 + Math.round(((t - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+    return t.getFullYear() + '-W' + String(wk).padStart(2, '0');
+  }
+  return {
+    weekKey,
+    async save(blob, meta) {
+      try {
+        const d = await db();
+        return new Promise((resolve, reject) => {
+          const tx = d.transaction('recordings', 'readwrite');
+          const os = tx.objectStore('recordings');
+          const req = os.add({ blob, ...meta, week: meta.week || weekKey(Date.now()) });
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (e) { return null; } // archive failures never block the practice flow
+    },
+    async listByWeek(week) {
+      try {
+        const d = await db();
+        return new Promise((resolve, reject) => {
+          const tx = d.transaction('recordings', 'readonly');
+          const idx = tx.objectStore('recordings').index('week');
+          const req = idx.getAll(week);
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => reject(req.error);
+        });
+      } catch (e) { return []; }
+    },
+    async listRecent(n) {
+      try {
+        const d = await db();
+        return new Promise((resolve, reject) => {
+          const tx = d.transaction('recordings', 'readonly');
+          const os = tx.objectStore('recordings');
+          const req = os.openCursor(null, 'prev');
+          const out = [];
+          req.onsuccess = ev => {
+            const c = ev.target.result;
+            if (c && out.length < n) {
+              out.push({ id: c.key, week: c.value.week, stage: c.value.stage,
+                         blobUrl: null, blob: c.value.blob, date: c.value.date });
+              c.continue();
+            } else resolve(out);
+          };
+          req.onerror = () => reject(req.error);
+        });
+      } catch (e) { return []; }
+    },
+    async clear() {
+      try {
+        const d = await db();
+        return new Promise(resolve => {
+          const tx = d.transaction('recordings', 'readwrite');
+          const req = tx.objectStore('recordings').clear();
+          req.onsuccess = () => resolve(true);
+          req.onerror = () => resolve(false);
+        });
+      } catch (e) { return false; }
+    },
+  };
+})();
+
+// Return a [stage, week]-tagged save to both the live blob-URL list and IDB.
+async function persistExerciseRecording(blob, stageId, extra) {
+  PROG.saveRecording();
+  const week = RECDB.weekKey(Date.now());
+  await RECDB.save(blob, { stage: stageId, date: new Date().toISOString(), kind: 'exercise' });
+  return { week, stage: stageId };
+}
+
 function startExerciseRec() {
   if (!mediaStream) return;
   exerciseChunks = [];
@@ -1193,7 +1302,7 @@ function stopExerciseRec() {
     if (!exerciseMediaRec || exerciseMediaRec.state === 'inactive') { resolve(null); return; }
     exerciseMediaRec.onstop = () => {
       const blob = new Blob(exerciseChunks, { type: recorderBlobType() });
-      resolve(URL.createObjectURL(blob));
+      resolve({ url: URL.createObjectURL(blob), blob });
     };
     exerciseMediaRec.stop();
   });
@@ -2021,8 +2130,8 @@ function renderGlide(el, stage) {
   document.getElementById('stageRecBtn').onclick = async () => {
     if (isExRecording) {
       isExRecording = false;
-      const url = await engine.stopRecording();
-      if (url) { stageState.attempts++; stageState.recordings.push(url); PROG.saveRecording(); }
+      const res = await engine.stopRecording();
+      if (res && res.url) { stageState.attempts++; stageState.recordings.push(res.url); persistExerciseRecording(res.blob, ROUTINE.stages[currentStage].id); }
       engine.rerender();
     } else {
       isExRecording = true;
@@ -2036,10 +2145,17 @@ function renderReadAloud(el, stage) {
   const cfg = stage.config;
   const lists = ROUTINE[cfg.listsKey];
   if (!lists || !lists.length) { el.innerHTML = '<div class="stage-title">No sentence data available</div>'; return; }
-  if (stageState.listIdx == null) stageState.listIdx = Math.floor(Math.random() * lists.length);
-  if (stageState.itemIdx == null) stageState.itemIdx = 0;
-  if (!stageState.recordings) stageState.recordings = [];
-
+  const isBenchmark = !!stage.benchmark;
+  if (isBenchmark) {
+    // Locked list: same material every week; force listIdx and hide the selector.
+    stageState.listIdx = cfg.listIdx || 0;
+    if (!stageState.recordings) stageState.recordings = [];
+    if (stageState.itemIdx == null) stageState.itemIdx = 0;
+  } else {
+    if (stageState.listIdx == null) stageState.listIdx = Math.floor(Math.random() * lists.length);
+    if (stageState.itemIdx == null) stageState.itemIdx = 0;
+    if (!stageState.recordings) stageState.recordings = [];
+  }
   if (cfg.zone) engine.setZone(cfg.zone.low, cfg.zone.high);
   else engine.clearFeedback();
 
@@ -2049,12 +2165,18 @@ function renderReadAloud(el, stage) {
   el.innerHTML = `
     <div class="stage-title">${stage.name}</div>
     <div class="stage-desc">${cfg.instruction}</div>
-    <div class="list-selector">
-      <label>List:</label>
-      <select id="listSelect">${lists.map((_, i) => `<option value="${i}" ${i === stageState.listIdx ? 'selected' : ''}>List ${i + 1}</option>`).join('')}</select>
-      <button id="randListBtn" class="sm">Random</button>
-      <span style="color:var(--text2);font-size:13px;margin-left:8px">${stageState.itemIdx + 1} / ${list.length}</span>
-    </div>
+    ${isBenchmark ? `
+      <div style="text-align:center;font-size:13px;color:var(--target);margin:8px 0;">
+        Locked material \u2014 List ${(cfg.listIdx || 0) + 1} every week. Same text, comparable recordings.
+      </div>
+    ` : `
+      <div class="list-selector">
+        <label>List:</label>
+        <select id="listSelect">${lists.map((_, i) => `<option value="${i}" ${i === stageState.listIdx ? 'selected' : ''}>List ${i + 1}</option>`).join('')}</select>
+        <button id="randListBtn" class="sm">Random</button>
+        <span style="color:var(--text2);font-size:13px;margin-left:8px">${stageState.itemIdx + 1} / ${list.length}</span>
+      </div>
+    `}
     <div class="sent-progress">${list.map((_, i) => `<div class="pip ${i < stageState.itemIdx ? 'done' : (i === stageState.itemIdx ? 'active' : '')}"></div>`).join('')}</div>
     <div class="current-sentence">${list[stageState.itemIdx]}</div>
     <div class="next-sentence">${nextItem ? 'Next: ' + nextItem : ''}</div>
@@ -2067,16 +2189,18 @@ function renderReadAloud(el, stage) {
   `;
   engine.renderRecordings('stageRecs', stageState.recordings);
 
-  document.getElementById('listSelect').onchange = e => {
-    stageState.listIdx = parseInt(e.target.value);
-    stageState.itemIdx = 0;
-    engine.rerender();
-  };
-  document.getElementById('randListBtn').onclick = () => {
-    stageState.listIdx = Math.floor(Math.random() * lists.length);
-    stageState.itemIdx = 0;
-    engine.rerender();
-  };
+  if (!isBenchmark) {
+    document.getElementById('listSelect').onchange = e => {
+      stageState.listIdx = parseInt(e.target.value);
+      stageState.itemIdx = 0;
+      engine.rerender();
+    };
+    document.getElementById('randListBtn').onclick = () => {
+      stageState.listIdx = Math.floor(Math.random() * lists.length);
+      stageState.itemIdx = 0;
+      engine.rerender();
+    };
+  }
   document.getElementById('sentPrevBtn').onclick = () => {
     if (stageState.itemIdx > 0) { stageState.itemIdx--; engine.rerender(); }
   };
@@ -2089,8 +2213,8 @@ function renderReadAloud(el, stage) {
     document.getElementById('stageRecBtn').onclick = async () => {
       if (isExRecording) {
         isExRecording = false;
-        const url = await engine.stopRecording();
-        if (url) { stageState.recordings.push(url); PROG.saveRecording(); }
+        const res = await engine.stopRecording();
+        if (res && res.url) { stageState.recordings.push(res.url); persistExerciseRecording(res.blob, ROUTINE.stages[currentStage].id); }
         engine.rerender();
       } else {
         isExRecording = true;
@@ -2174,8 +2298,8 @@ function renderFreeTalk(el, stage) {
     document.getElementById('stageRecBtn').onclick = async () => {
       if (isExRecording) {
         isExRecording = false;
-        const url = await engine.stopRecording();
-        if (url) { stageState.recordings.push(url); PROG.saveRecording(); }
+        const res = await engine.stopRecording();
+        if (res && res.url) { stageState.recordings.push(res.url); persistExerciseRecording(res.blob, ROUTINE.stages[currentStage].id); }
         engine.rerender();
       } else {
         isExRecording = true;
@@ -2293,10 +2417,11 @@ async function setStage(n) {
     const ok = confirm('An exercise recording is in progress. Switch stages? The recording will be saved to this stage.');
     if (!ok) return;
     isExRecording = false;
-    const url = await stopExerciseRec();
-    if (url) {
+    const res = await stopExerciseRec();
+    if (res && res.url) {
       if (!stageState.recordings) stageState.recordings = [];
-      stageState.recordings.push(url);
+      stageState.recordings.push(res.url);
+      persistExerciseRecording(res.blob, ROUTINE.stages[currentStage].id);
     }
   }
   engine.clearTimer();
@@ -3152,6 +3277,29 @@ function updateBrightnessMeter() {
 }
 
 // ── Dashboard ──
+let _recArchiveUrlPool = [];
+function recArchiveEls() {
+  const box = document.getElementById('progRecArchive');
+  if (!box) return;
+  box.innerHTML = '<div class="prog-empty">Loading archive\u2026</div>';
+  RECDB.listRecent(20).then(items => {
+    // Revoke previous URLs so repeated opens don't leak.
+    _recArchiveUrlPool.forEach(u => URL.revokeObjectURL(u));
+    _recArchiveUrlPool = [];
+    if (!items.length) {
+      box.innerHTML = '<div class="prog-empty">No archived recordings yet \u2014 they appear here after you save exercise recordings.</div>';
+      return;
+    }
+    const rows = items.map((it, i) => {
+      const url = URL.createObjectURL(it.blob);
+      _recArchiveUrlPool.push(url);
+      const d = new Date(it.date);
+      const stageName = (ROUTINE.stages.find(s => s.id === it.stage) || {}).short || it.stage;
+      return `<div class="rec-item"><span class="rec-meta">${RECDB.weekKey(it.date)} \u00b7 ${stageName} \u00b7 ${d.toLocaleString()}</span><audio controls src="${url}"></audio><a class="rec-dl" href="${url}" download="vt-${it.stage}-${d.toISOString().slice(0, 16).replace(/[:T]/g, '-')}.${recorderExt(RECORDER_MIME)}">save</a></div>`;
+    }).join('');
+    box.innerHTML = rows;
+  });
+}
 function openProgressDashboard() {
   const ov = document.getElementById('progressOverlay');
   const h = PROG.readHistory();
@@ -3185,6 +3333,9 @@ function openProgressDashboard() {
     const zTxt = z ? `${z.low}\u2013${z.high}` : '\u2014';
     return `<tr><td>${st.short}</td><td>${Math.floor(ms / 60000)}m ${Math.floor(ms / 1000) % 60}s</td><td>${zTxt}</td></tr>`;
   }).join('');
+
+  // Recording archive: last 20 entries, newest first, with download links.
+  recArchiveEls();
 
   const recent = h.slice(-7).reverse().map(s => {
     const d = new Date(s.date);
