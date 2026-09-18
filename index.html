@@ -1267,8 +1267,29 @@ function applyProfileToRoutine() {
     if (st.config.__baseReps === undefined) st.config.__baseReps = st.config.reps;
     st.config.instruction = st.config.__base;
     if (st.config.__baseReps !== undefined) st.config.reps = st.config.__baseReps;
-    // zones
+    // zones (stages that declare a range)
     if (st.config.zone) st.config.zone = { low: plan.zone.low, high: plan.zone.high };
+    // note lists (repeat-on-note stages carry notes, not a zone): clamp anything
+    // above the ceiling down to it, so an "avoid sounding too high" answer is
+    // reflected where the user actually looks — the target notes.
+    if (st.config.__baseNotes === undefined) st.config.__baseNotes = st.config.notes ? st.config.notes.slice() : undefined;
+    if (st.config.__baseNotes) {
+      const OCT = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+      const idx = n => { const m = /^([A-G]#?)(\d)$/.exec(n); return m ? OCT.indexOf(m[1]) + 12 * parseInt(m[2], 10) : 0; };
+      const NAME = i => OCT[i % 12] + Math.floor(i / 12);
+      const ceilI = idx(plan.zone.high);
+      st.config.notes = st.config.__baseNotes.map(n => (idx(n) > ceilI ? NAME(ceilI) : n));
+    }
+    // single-note stages (resonance warm-ups) follow the ceiling too
+    if (st.config.__baseNote === undefined) st.config.__baseNote = st.config.note;
+    if (st.config.__baseNote) {
+      const OCT2 = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+      const idx2 = n => { const m = /^([A-G]#?)(\d)$/.exec(n); return m ? OCT2.indexOf(m[1]) + 12 * parseInt(m[2], 10) : 0; };
+      const N2 = i => OCT2[i % 12] + Math.floor(i / 12);
+      const ceilI2 = idx2(plan.zone.high);
+      const cur = st.config.__baseNote;
+      st.config.note = idx2(cur) > ceilI2 ? N2(ceilI2) : cur;
+    }
     // volume restraint (asked to avoid strain, or a softer/lighter aim)
     if (st.id === 'volume' && !plan.volumeLoud) {
       st.config.reps = 1;
