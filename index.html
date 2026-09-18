@@ -3511,7 +3511,7 @@ function sayThisMaterial(stage) {
       lines = Array.isArray(list) ? list.slice(0, 2) : [String(list)];
     } else {
       // resonanceVowels are {label, description} objects
-      lines = raw.slice(0, 6).map(v => (typeof v === 'string' ? v : (v.description ? v.label + ' — as in ' + v.description : v.label)));
+      lines = raw.slice(0, 6).map(v => (typeof v === 'string' ? v : (v.description ? v.label + ' — ' + v.description : v.label)));
     }
   } else {
     lines = [String(raw)];
