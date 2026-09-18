@@ -2,7 +2,7 @@
 // Bump CACHE_NAME whenever any cached file changes; the activate handler
 // drops old caches and `clients.claim()` makes the update take effect
 // without requiring a second reload.
-const CACHE_NAME = 'voice-trainer-v13';
+const CACHE_NAME = 'voice-trainer-v14';
 const ASSETS = [
   './',
   './index.html',

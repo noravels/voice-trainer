@@ -222,6 +222,11 @@ body:has(#main.focus-mode) { overflow: hidden; }
 .ev-target { color:var(--text); font-weight:600; font-size:13px; }
 .ev-k { color:var(--accent); font-weight:600; }
 .ev-src { opacity:0.85; }
+.say-box { max-width:620px; text-align:left; border:1px solid var(--border,rgba(255,255,255,0.10)); border-left:3px solid var(--success); border-radius:8px; padding:10px 12px; margin:10px 0; background:rgba(255,255,255,0.02); }
+.say-head { font-size:12px; font-weight:700; color:var(--success); margin-bottom:6px; letter-spacing:0.02em; }
+.say-line { font-size:14px; line-height:1.7; color:var(--text); }
+.say-more { font-size:11px; color:var(--text2); margin-top:4px; }
+.say-box .sm { margin-top:8px; }
 .plan-card { max-width:620px; text-align:left; border:1px solid var(--border,rgba(255,255,255,0.10)); border-radius:8px; padding:10px 12px; margin:12px 0; background:rgba(255,255,255,0.02); }
 .plan-card-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
 .plan-row { display:flex; gap:10px; font-size:12px; line-height:1.7; color:var(--text2); }
@@ -1045,6 +1050,23 @@ const LANGUAGE_PACKS = {
     playPrompts: PLAY_PROMPTS,
     setupStarters: SETUP_STARTERS,
     softStarters: SOFT_STARTERS_TR,
+    warmupVowel: 'Rahat, tembel bir \u201Cuu\u201D (uzun) \u2014 itmeden, 10 saniye.',
+    glideMaterial: ['\u201Ciii\u201Ddan \u201Cuuu\u201Dya tek nefeste kay', '\u201Ceee\u201Dden \u201Cooo\u201Dya yumu\u015Fak ge\u00E7i\u015F', '\u201Caaa\u201D \u2192 \u201Ceee\u201D \u2192 \u201Caaa\u201D, nefes bozulmadan', 'Motor gibi \u201Crrr\u201D \u2192 uzun \u201Cuuu\u201D'],
+    counting: ['bir', 'iki', '\u00FC\u00E7', 'd\u00F6rt', 'be\u015F'],
+    textureMaterial: ['Yumu\u015Fak taraf: \u201Cmm-hmm\u201D, \u201Ceee\u2026\u201D', 'G\u00FC\u00E7l\u00FC taraf: \u201Chey!\u201D, \u201Cgel buraya!\u201D', '\u0130kisi aras\u0131: \u201Cee-hay\u0131r\u201D, \u201Coo-tamam\u201D', 'Say\u0131 say: bir-iki-\u00FC\u00E7, \u00F6nce yumu\u015Fak sonra g\u00FC\u00E7l\u00FC'],
+    setupLine: '\u201Chh-ahh\u2026\u201D sonra: \u201CBu sabah ne yapt\u0131n?\u201D',
+    warmupStarters: [
+      'Rahat ve tembel bir \u201Cuuu\u201D tut \u2014 10 saniye, itmeden.',
+      'Ayn\u0131 \u201Cuuu\u201D sesini bir kez daha, biraz daha hafif.',
+      'K\u00fc\u00E7\u00FCk bir \u201Cmm-hmm\u201D ile ba\u015Fla, sonra \u201Cuuu\u201Da ba\u011Fla.',
+      'Bir \u201Caaa\u201D tut, sonra yava\u015F\u00E7a \u201Cuuu\u201Da ge\u00E7.',
+      'Nefes al, \u201Cuu\u201D de, b\u0131rak \u2014 kendili\u011Finden s\u00F6ns\u00FCn.',
+      'Konu\u015Fur gibi \u201Cee-uu-ee\u201D yap, sonra tek ses tut.',
+      'Rahat bir sesle \u201Cuu\u201D tut ve i\u00E7erideki bo\u015Flu\u011Fu fark et.',
+      'Ayn\u0131 notay\u0131 \u00FC\u00E7 kez tut: f\u0131s\u0131lt\u0131, normal, biraz daha dolgun.',
+      'Yorgun bir \u201Cah\u2026\u201D ile ba\u015Fla, sonra \u201Cuu\u201Dya d\u00F6n.',
+      'G\u00FCnl\u00FCk sesinle \u201Cmerhaba\u201D de, sonra o sesi uzun bir \u201Cuu\u201Dda tut.',
+    ],
     resonanceVowels: [
       { label: 'A', description: 'as in "ada"' },
       { label: 'E', description: 'as in "ekmek"' },
@@ -1061,6 +1083,23 @@ const LANGUAGE_PACKS = {
     playPrompts: EN_PLAY_PROMPTS,
     setupStarters: EN_SETUP_STARTERS,
     softStarters: SOFT_STARTERS_EN,
+    warmupVowel: 'A lazy, buzzy \u201Cew\u201D (as in \u201Cyou\u201D) \u2014 no push, 10 seconds.',
+    glideMaterial: ['glide \u201Ceee\u201D \u2192 \u201Cooo\u201D on one breath', 'slide \u201Caaa\u201D \u2192 \u201Ceee\u201D \u2192 \u201Caaa\u201D without breaking the breath', 'lip trill \u201Cbrrr\u201D \u2192 long \u201Coo\u201D', 'siren on \u201Cng\u201D up and back down'],
+    counting: ['one', 'two', 'three', 'four', 'five'],
+    textureMaterial: ['softer side: \u201Cmm-hmm\u201D, \u201Ceee\u2026\u201D', 'stronger side: \u201Chey!\u201D, \u201Ccome here!\u201D', 'between them: \u201Cee-no\u201D, \u201Coo-okay\u201D', 'count one-two-three, first soft then strong'],
+    setupLine: '\u201Chh-ahh\u2026\u201D then: \u201CWhat did you do this morning?\u201D',
+    warmupStarters: [
+      'Hold a lazy buzz \u201Cew\u201D (as in \u201Cyou\u201D) for 10 seconds \u2014 no push.',
+      'Same \u201Cew\u201D again, but lighter than the last one.',
+      'Start from a tiny \u201Cmm-hmm\u201D, then open into \u201Cew\u201D.',
+      'Hold \u201Cah\u201D, then glide slowly into \u201Cew\u201D.',
+      'Breathe in, sing \u201Cew\u201D, let it die out on its own.',
+      'Speak-like \u201Cee-oo-ee\u201D, then settle on one held note.',
+      'Hold \u201Coo\u201D easily and notice the space inside your mouth.',
+      'Hold the same note three times: whisper, normal, slightly fuller.',
+      'Start with a tired \u201Cah\u2026\u201D, then move to \u201Cew\u201D.',
+      'Say \u201Chello\u201D in your everyday voice, then hold that same sound on \u201Cew\u201D.',
+    ],
     resonanceVowels: [
       { label: 'A', description: 'as in "cat"' },
       { label: 'E', description: 'as in "bed"' },
@@ -1083,6 +1122,7 @@ const ROUTINE_PRACTICE = {
     }},
     { id: 'warmup', name: '1. Warm-up', short: 'Warm-up', type: 'sustained-tone', config: {
       notes: ['F3','G3','A3'], duration: 10,
+      languageAwareVowel: true,
       instruction: 'Sustain a lazy "ew" (as in "you") on each note for 10 seconds. Keep it buzzy and effortless \u2014 no push, no extra weight.',
       showReference: true
     }},
@@ -2785,7 +2825,7 @@ function renderSustainedTone(el, stage) {
 
   el.innerHTML = `
     <div class="stage-title">${stage.name}</div>
-    <div class="stage-desc">${cfg.instruction}</div>
+    <div class="stage-desc">${stageInstruction(cfg)}</div>
     <div class="substep-dots" id="stepDots"></div>
     <div class="substep-label">Note ${step + 1} of ${notes.length}: <strong style="color:var(--target)">${note}</strong> (${Math.round(NOTE_FREQ_MAP[note])} Hz)</div>
     <div class="stage-timer" id="stageTimerEl">${cfg.duration}.0</div>
@@ -3170,6 +3210,15 @@ function renderCheckinStage(el, stage) {
   };
 }
 
+function stageInstruction(cfg) {
+  // Warm-up names a vowel; that vowel belongs to the practice language.
+  const pack = LANGUAGE_PACKS[PROG.activeLang()] || {};
+  if (cfg.languageAwareVowel && pack.warmupVowel) {
+    return pack.warmupVowel + ' Keep it buzzy and effortless \u2014 no push, no extra weight.';
+  }
+  return cfg.instruction;
+}
+
 function renderTimedHold(el, stage) {
   const cfg = stage.config;
   if (cfg.note) engine.setTarget(cfg.note);
@@ -3427,6 +3476,68 @@ function planNotesHTML(stage) {
     `<div class="plan-note" style="border-left-color:${color[kind] || 'var(--accent)'}">${text}</div>`).join('') + '</div>';
 }
 
+
+// ── "What do I actually say?" — per-stage spoken material ────────────
+// Every stage pulls its spoken material from the ACTIVE language pack, so the
+// user is never left guessing what to voice. Arrays get a shuffle button.
+const STAGE_SAY_KEY = {
+  warmup: 'warmupVowel',
+  play: 'playPrompts',
+  pitch: 'counting',
+  resonance: 'resonanceVowels',
+  troot: 'resonanceVowels',
+  bright: 'resonanceVowels',
+  texture: 'textureMaterial',
+  soft: 'softStarters',
+  blend: 'glideMaterial',
+  combine: 'setupStarters',
+  volume: 'counting',
+  sentences: 'sentences',
+  benchmark: 'sentences',
+  read: 'sentences',
+  prosody: 'emotionStarters',
+  fluid: 'fluidStarters',
+};
+function sayThisMaterial(stage) {
+  const pack = LANGUAGE_PACKS[PROG.activeLang()] || LANGUAGE_PACKS.tr;
+  const key = STAGE_SAY_KEY[stage.id];
+  if (!key || !pack[key]) return null;
+  const raw = pack[key];
+  let lines = [];
+  if (Array.isArray(raw)) {
+    if (key === 'sentences') {
+      // sentence lists are nested arrays of lists; take list 1 as a taster
+      const list = raw[0] || [];
+      lines = Array.isArray(list) ? list.slice(0, 2) : [String(list)];
+    } else {
+      // resonanceVowels are {label, description} objects
+      lines = raw.slice(0, 6).map(v => (typeof v === 'string' ? v : (v.description ? v.label + ' — as in ' + v.description : v.label)));
+    }
+  } else {
+    lines = [String(raw)];
+  }
+  return { lines, isArray: Array.isArray(raw), count: Array.isArray(raw) ? raw.length : 1 };
+}
+function sayThisHTML(stage) {
+  const pack = LANGUAGE_PACKS[PROG.activeLang()] || {};
+  const label = pack.label || PROG.activeLang();
+  if (stage.type === 'checkin') {
+    return `<div class="say-box"><div class="say-head">No sound on this screen</div>
+      <div class="say-lines">Check-in asks only about how your voice feels today. The first thing you will actually voice is the next stage &mdash; it will tell you what to say, in <b>${label}</b>.</div></div>`;
+  }
+  const m = sayThisMaterial(stage);
+  if (!m) return '';
+  const body = m.isArray
+    ? m.lines.map(l => `<div class="say-line">${l}</div>`).join('') +
+      (m.count > m.lines.length ? `<div class="say-more">+ ${m.count - m.lines.length} more in ${label}</div>` : '')
+    : `<div class="say-line">${m.lines[0]}</div>`;
+  return `<div class="say-box">
+    <div class="say-head">Say this &mdash; in ${label}</div>
+    ${body}
+    ${m.isArray ? '<button id="sayShuffle" class="sm" type="button">Another one</button>' : ''}
+  </div>`;
+}
+
 function renderCurrentStage() {
   const el = document.getElementById('stageContent');
   const stage = ROUTINE.stages[currentStage];
@@ -3439,6 +3550,34 @@ function renderCurrentStage() {
     // profile-driven guidance for this stage (timbre aim, avoid list, today's check-in)
     const notes = planNotesHTML(stage);
     if (notes) el.insertAdjacentHTML('afterbegin', notes);
+    // what to actually voice, from your practice language
+    const sayHtml = sayThisHTML(stage);
+    if (sayHtml) {
+      const desc = el.querySelector('.stage-desc');
+      if (desc) desc.insertAdjacentHTML('afterend', sayHtml);
+      else el.insertAdjacentHTML('afterbegin', sayHtml);
+      const sh = document.getElementById('sayShuffle');
+      if (sh) sh.addEventListener('click', () => {
+        const pack = LANGUAGE_PACKS[PROG.activeLang()] || {};
+        const key = STAGE_SAY_KEY[stage.id];
+        const arr = pack[key];
+        if (Array.isArray(arr)) {
+          // rotate the window so "Another one" actually shows different material
+          const start = Math.floor(Math.random() * arr.length);
+          const lines = [];
+          for (let i = 0; i < Math.min(6, arr.length); i++) {
+            const v = arr[(start + i) % arr.length];
+            lines.push(typeof v === 'string' ? v : (v.description ? v.label + ' \u2014 as in ' + v.description : v.label));
+          }
+          const box = document.querySelector('.say-box');
+          const keepHead = box.querySelector('.say-head').outerHTML;
+          const extra = box.querySelector('.say-more');
+          box.innerHTML = keepHead + lines.map(l => `<div class="say-line">${l}</div>`).join('') +
+            (extra ? extra.outerHTML : '') + '<button id="sayShuffle" class="sm" type="button">Another one</button>';
+          document.getElementById('sayShuffle').addEventListener('click', sh.onclick);
+        }
+      });
+    }
     // beginner-only plain instruction, and context-flavoured prompts
     if (window.__stageTip) {
       const tip = window.__stageTip(stage.type);
