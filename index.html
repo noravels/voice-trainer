@@ -304,8 +304,9 @@ body:has(#main.focus-mode) { overflow: hidden; }
     <summary>Plain-language glossary</summary>
     <div style="font-size:13px;color:var(--text2);line-height:1.7;padding:6px 2px;">
       <div><b style="color:var(--text);">Pitch</b> &mdash; how high or low your voice sounds.</div>
-      <div style="margin-top:4px;"><b style="color:var(--text);">Resonance</b> &mdash; the color or placement of the sound: dark/inner vs. bright/forward.</div>
-      <div style="margin-top:4px;"><b style="color:var(--text);">Vocal weight</b> &mdash; how heavy or pressed the voice feels; light weight reads softer.</div>
+      <div style="margin-top:4px;"><b style="color:var(--text);">Resonance</b> &mdash; the size and shape of the space the sound vibrates in. The tongue root changes it; the larynx follows along.</div>
+      <div style="margin-top:4px;"><b style="color:var(--text);">Strong / soft voice (chest &amp; head)</b> &mdash; the two vocal textures your voice balances between: strong/powerful and soft/light. Fem voice usually wants a blend of both. (Some coaches call related qualities &ldquo;vocal weight&rdquo; &mdash; a name that invites squeezing, so we avoid it.)</div>
+      <div style="margin-top:4px;"><b style="color:var(--text);">Tongue root</b> &mdash; the base of your tongue; moving it up/down drives larynx height and cavity size. Never push the larynx by hand — old forum advice, modern coaches advise against it.</div>
       <div style="margin-top:4px;"><b style="color:var(--text);">Prosody</b> &mdash; the melody of speech: rhythm, stress, and intonation.</div>
       <div style="margin-top:4px;"><b style="color:var(--text);">Formants</b> &mdash; measurable traces of resonance (shown as spectrogram bands; kept in the background until you want them).</div>
     </div>
@@ -704,8 +705,8 @@ const ROUTINE = {
     }},
     { id: 'resonance', name: '2. Resonance', short: 'Resonance', type: 'resonance', config: {
       note: 'F3',
-      preamble: 'First, achieve a dark, yawn-like "ah". Your lips must not move \u2014 check with a mirror or camera.',
-      instruction: 'Now on F3, brighten from dark to bright through these Turkish vowels. Only the inside of the mouth changes \u2014 lips stay still.',
+      preamble: 'First: tongue-root agility. Keep the tongue tip touching the back of the bottom teeth, then move the ROOT up and down (like a gentle "la-la"). The root moves the larynx \u2014 never push the larynx with your hand.',
+      instruction: 'Now on F3, explore cavity size through these Turkish vowels. Tongue-root UP & forward = smaller space, brighter. Tongue-root DOWN + yawn = larger space, darker. Only the inside changes \u2014 lips and jaw stay still.',
       steps: [
         { label: 'A', description: 'as in "ada"' },
         { label: 'E', description: 'as in "ekmek"' },
@@ -715,29 +716,34 @@ const ROUTINE = {
       ],
       showReference: true
     }},
-    { id: 'volume', name: '3. Volume', short: 'Volume', type: 'repeat-on-note', config: {
+    { id: 'blend', name: '3. Register Blend', short: 'Blend', type: 'glide', config: {
+      direction: 'up', startNote: 'F3', zone: { low: 'C4', high: 'F4' },
+      referenceNote: 'F3', minAttempts: 3,
+      instruction: 'Messa di voce: on "ee", glide up smoothly, then on "oo" continue back down \u2014 one connected journey per breath. Volume arches up then softens. Cracking is GOOD here: it means both registers exist. Keep each attempt connected, no stopping.'
+    }},
+    { id: 'volume', name: '4. Volume', short: 'Volume', type: 'repeat-on-note', config: {
       notes: ['F3','A#3'], reps: 2,
       instruction: 'Count 1\u20135 projecting louder on each repetition WITHOUT letting the pitch rise or the voice get heavier. Loud lives in resonance, not in height.',
       showReference: true, display: '1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5'
     }},
-    { id: 'sentences', name: '4. Sentences', short: 'Sentences', type: 'read-aloud', config: {
+    { id: 'sentences', name: '5. Sentences', short: 'Sentences', type: 'read-aloud', config: {
       listsKey: 'sentences', zone: { low: 'F3', high: 'A#3' },
-      instruction: 'Read each Turkish sentence inside the target zone (F3\u2013A#3). Keep vocal weight light and let the melody move naturally.',
+      instruction: 'SETUP then read: start every sentence slightly high with a soft yawn-vowel ("ahh\u2026") and keep it CONNECTED into the first word \u2014 no gap. If the setup fails, the phrase fails. Stay inside F3\u2013A#3, light weight.',
       recording: true
     }},
-    { id: 'benchmark', name: '5. Weekly Benchmark', short: 'Benchmark', type: 'read-aloud', benchmark: true, config: {
+    { id: 'benchmark', name: '6. Weekly Benchmark', short: 'Benchmark', type: 'read-aloud', benchmark: true, config: {
       listsKey: 'sentences', listIdx: 0, zone: { low: 'F3', high: 'A#3' },
-      instruction: 'Weekly benchmark: always read List 1 (locked) so recordings stay comparable week to week. Record the full read-through.',
+      instruction: 'Weekly benchmark: always read List 1 (locked) so recordings stay comparable week to week. Use the same setup every week: soft yawn onset, connected into the sentence.',
       recording: true
     }},
-    { id: 'prosody', name: '6. Prosody & Emotion', short: 'Prosody', type: 'free-talk', config: {
+    { id: 'prosody', name: '7. Prosody & Emotion', short: 'Prosody', type: 'free-talk', config: {
       promptsKey: 'emotionStarters', zone: { low: 'F3', high: 'A#3' },
-      instruction: 'Say the quoted Turkish line with the named emotion. Keep the pitch inside the zone \u2014 emotion comes from brightness and melody, not from pitch height.',
+      instruction: 'Setup first (slightly high, yawn-vowel, connected), THEN say the quoted Turkish line with the named emotion. Emotion comes from brightness and melody \u2014 keep the pitch inside the zone.',
       recording: true
     }},
-    { id: 'fluid', name: '7. Fluidity', short: 'Fluid', type: 'free-talk', config: {
+    { id: 'fluid', name: '8. Fluidity', short: 'Fluid', type: 'free-talk', config: {
       promptsKey: 'fluidStarters', zone: { low: 'E3', high: 'C4' },
-      instruction: 'Fluidity drill: move between your everyday voice and your target voice on purpose. A wider zone is fine \u2014 the goal is controlled switching.',
+      instruction: 'Fluidity drill: move between your everyday voice and your target voice on purpose \u2014 always entering the target voice through the setup (slightly high + yawn + connected). A wider zone is fine; the goal is controlled switching.',
       recording: true
     }},
   ],
