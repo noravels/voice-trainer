@@ -6,6 +6,16 @@
     <lastmod>2026-09-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://voice.noravels.com/guide.html"/>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://voice.noravels.com/guide-tr.html"/>
+  </url>
+  <url>
+    <loc>https://voice.noravels.com/guide-tr.html</loc>
+    <lastmod>2026-09-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+    <xhtml:link rel="alternate" hreflang="tr" href="https://voice.noravels.com/guide-tr.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://voice.noravels.com/guide.html"/>
   </url>
   <url>
     <loc>https://voice.noravels.com/</loc>
