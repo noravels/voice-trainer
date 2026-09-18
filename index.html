@@ -1198,11 +1198,18 @@ function computePersonalPlan() {
   // Working range. Feminine-forward work keeps the routine in F3–A#3; a wider
   // androgynous goal opens the bottom; "avoid sounding too high" pulls the
   // ceiling down so the app cannot nudge you upward.
-  let low = 'F3', high = 'A#3';
-  if (goal.includes('androgynous')) { low = 'E3'; high = 'A#3'; }
-  if (goal.includes('softer') || timbre.includes('softer') || timbre.includes('lighter')) { low = 'F3'; high = 'F#3'; }
-  if (avoid.includes('too-high')) { high = 'G3'; }
-  if (avoid.includes('strain')) { high = high === 'G3' ? 'F#3' : 'G3'; }
+  // Ceiling: whoever argues for the tightest limit wins — an avoid-list entry
+  // must never *raise* the ceiling, it can only pull it down.
+  const CEILING = ['F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3'];
+  let ceilingIdx = CEILING.indexOf('A#3');
+  if (timbre.includes('softer') || timbre.includes('lighter') || goal.includes('softer')) {
+    ceilingIdx = Math.min(ceilingIdx, CEILING.indexOf('F#3'));
+  }
+  if (avoid.includes('too-high')) ceilingIdx = Math.min(ceilingIdx, CEILING.indexOf('G3'));
+  if (avoid.includes('strain')) ceilingIdx = Math.min(ceilingIdx, CEILING.indexOf('G3'));
+  if (goal.includes('explore') && !avoid.length && !timbre.length) ceilingIdx = CEILING.indexOf('A#3');
+  const high = CEILING[ceilingIdx];
+  const low = goal.includes('androgynous') ? 'E3' : 'F3';
 
   // Volume stage: only push loudness when nothing argues against strain.
   const volumeLoud = !(avoid.includes('strain') || timbre.includes('softer') || timbre.includes('lighter'));
