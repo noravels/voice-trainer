@@ -214,7 +214,10 @@ body:has(#main.focus-mode) { overflow: hidden; }
 
 /* Voice profile chips (noravels fork) */
 .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 4px; }
-.field-help { font-size:12px; line-height:1.6; color:var(--text2); max-width:560px; margin:0 0 6px; }
+.help-q { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; min-width:16px; padding:0; margin-left:6px; border-radius:50%; border:1px solid var(--text2); background:transparent; color:var(--text2); font-size:11px; font-weight:700; line-height:1; cursor:pointer; vertical-align:middle; }
+.help-q:hover, .help-q[aria-expanded="true"] { border-color:var(--accent); color:var(--accent); }
+.help-q:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.field-help { font-size:12px; line-height:1.6; color:var(--text2); max-width:560px; margin:6px 0 6px; padding-left:10px; border-left:2px solid var(--accent); }
 .field-help b { color:var(--text); }
 .learn-list { max-width:600px; text-align:left; }
 .learn-item { font-size:13px; line-height:1.65; color:var(--text2); padding:8px 0; border-bottom:1px solid var(--border,rgba(255,255,255,0.06)); }
@@ -580,8 +583,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <button id="profHowToggle" class="sm" style="display:none;margin:0 0 14px;">Show "How this works" again</button>
       <div id="profMsg" style="font-size:13px;color:var(--text2);margin-bottom:14px;"></div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">My goal</h3>
-      <div class="field-help">What you want to get out of this. It doesn't lock anything &mdash; it just picks which routine you get and how the app talks about targets.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">My goal <button class="help-q" type="button" aria-expanded="false" aria-controls="help-my-goal" title="What is this and why do we ask?" aria-label="Explain: My goal">?</button></h3>
+      <div class="field-help" id="help-my-goal" hidden>What you want to get out of this. It doesn't lock anything &mdash; it just picks which routine you get and how the app talks about targets.</div>
       <div class="chip-group" data-key="goal">
         <button class="chip" data-v="more-feminine">More feminine</button>
         <button class="chip" data-v="androgynous">More androgynous</button>
@@ -590,22 +593,29 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="explore">Not sure yet — exploring</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">How do you want to work?</h3>
-      <div class="field-help">Two honest routes to the same place. <b>Practice-first</b> starts from real speech on day one (faster to sounding natural, less theory). <b>Foundation-first</b> trains each piece of the instrument alone first &mdash; play, pitch control, tongue root, softness, brightness &mdash; then combines them (this is the order VAMethod teaches in; slower start, fewer bad habits). You can switch later in this same panel.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">How do you want to work? <button class="help-q" type="button" aria-expanded="false" aria-controls="help-how-do-you-want-to-work" title="What is this and why do we ask?" aria-label="Explain: How do you want to work?">?</button></h3>
+      <div class="field-help" id="help-how-do-you-want-to-work" hidden>Two honest routes to the same place. <b>Practice-first</b> starts from real speech on day one (faster to sounding natural, less theory). <b>Foundation-first</b> trains each piece of the instrument alone first &mdash; play, pitch control, tongue root, softness, brightness &mdash; then combines them (this is the order VAMethod teaches in; slower start, fewer bad habits). You can switch later in this same panel.</div>
       <div class="chip-group" data-key="path">
         <button class="chip" data-v="practice-first">Practice-first — goal-oriented daily routine (faster to real speaking)</button>
         <button class="chip" data-v="foundation-first">Foundation-first — understand the instrument before gender shaping (VAMethod lesson order)</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Which language(s) do you want to practice in? <span style="font-weight:400">(multi-select — prosody packs match each)</span></h3>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Which language(s) do you want to practice in? <span style="font-weight:400">(multi-select)</span> <button class="help-q" type="button" aria-expanded="false" aria-controls="help-practiceLanguages" title="What is this and why do we ask?" aria-label="Explain the language choice">?</button></h3>
       <div class="chip-group" data-key="practiceLanguages" data-multi="true">
         <button class="chip" data-v="tr">T&uuml;rk&ccedil;e</button>
         <button class="chip" data-v="en">English</button>
       </div>
-      <div class="modal-sub" style="margin-top:2px;font-size:11px;">The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages are language-independent.</div>
+      <div class="field-help" id="help-practiceLanguages" hidden>The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages (tongue root, resonance, blend) are the same in every language &mdash; those are physics, not language.</div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience</h3>
-      <div class="field-help">So the app knows how much explaining to do. Nothing is assumed &mdash; "completely new" is a perfectly good answer.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience <button class="help-q" type="button" aria-expanded="false" aria-controls="help-which-language-s-do-you-want-to-practice" title="What is this and why do we ask?" aria-label="Explain: Which language(s) do you want to practice in? (multi-select — prosody packs match each)
+      
+        T&uuml;rk&ccedil;e
+        English
+      
+      The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages (tongue root, resonance, blend) are the same in every language &mdash; those are physics, not language.
+
+      Experience">?</button></h3>
+      <div class="field-help" id="help-which-language-s-do-you-want-to-practice" hidden>So the app knows how much explaining to do. Nothing is assumed &mdash; "completely new" is a perfectly good answer.</div>
       <div class="chip-group" data-key="experience">
         <button class="chip" data-v="none">Completely new</button>
         <button class="chip" data-v="videos">Watched some videos</button>
@@ -613,8 +623,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="with-therapist">Worked / working with a therapist</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Timbre I'm aiming for <span style="font-weight:400;color:var(--text2);">&mdash; what is this?</span></h3>
-      <div class="field-help"><b>Timbre</b> (say <i>TAM-ber</i>) is the <i>color</i> of your voice &mdash; the thing that makes two people on the same note sound like different people. It is not pitch (high/low) and not loudness. It comes mainly from <b>resonance</b>: how big the space in your throat and mouth is, and where the sound is focused. So "brighter" = smaller/more forward space; "softer" = less pressed, more relaxed texture. Pick whatever attracts you; the routine just leans its cues that way. Nothing here is a commitment.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Timbre I'm aiming for <button class="help-q" type="button" aria-expanded="false" aria-controls="help-timbre-i-m-aiming-for---what-is-this-" title="What is this and why do we ask?" aria-label="Explain what timbre means">?</button></h3>
+      <div class="field-help" id="help-timbre-i-m-aiming-for-mdash-what-is-this" hidden><b>Timbre</b> (say <i>TAM-ber</i>) is the <i>color</i> of your voice &mdash; the thing that makes two people on the same note sound like different people. It is not pitch (high/low) and not loudness. It comes mainly from <b>resonance</b>: how big the space in your throat and mouth is, and where the sound is focused. So "brighter" = smaller/more forward space; "softer" = less pressed, more relaxed texture. Pick whatever attracts you; the routine just leans its cues that way. Nothing here is a commitment.</div>
       <div class="chip-group" data-key="timbre">
         <button class="chip" data-v="brighter">Brighter</button>
         <button class="chip" data-v="softer">Softer</button>
@@ -623,8 +633,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="natural">Just natural</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Things I'd rather avoid</h3>
-      <div class="field-help">Common traps. Tick any that worry you and the routine will explicitly warn when an exercise tends to cause that &mdash; e.g. "don't chase high pitch" or "keep it non-nasal".</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Things I'd rather avoid <button class="help-q" type="button" aria-expanded="false" aria-controls="help-things-i-d-rather-avoid" title="What is this and why do we ask?" aria-label="Explain: Things I'd rather avoid">?</button></h3>
+      <div class="field-help" id="help-things-i-d-rather-avoid" hidden>Common traps. Tick any that worry you and the routine will explicitly warn when an exercise tends to cause that &mdash; e.g. "don't chase high pitch" or "keep it non-nasal".</div>
       <div class="chip-group" data-key="avoid">
         <button class="chip" data-v="too-high">Sounding too high</button>
         <button class="chip" data-v="artificial">Sounding artificial</button>
@@ -633,8 +643,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="theatrical">Sounding theatrical</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Where I'll use it</h3>
-      <div class="field-help">Where your voice has to work in real life. This decides which contexts the practice prompts imitate (phone calls, home, friends, work).</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Where I'll use it <button class="help-q" type="button" aria-expanded="false" aria-controls="help-where-i-ll-use-it" title="What is this and why do we ask?" aria-label="Explain: Where I'll use it">?</button></h3>
+      <div class="field-help" id="help-where-i-ll-use-it" hidden>Where your voice has to work in real life. This decides which contexts the practice prompts imitate (phone calls, home, friends, work).</div>
       <div class="chip-group" data-key="contexts">
         <button class="chip" data-v="home">Practicing at home</button>
         <button class="chip" data-v="phone">Phone / online calls</button>
@@ -4207,6 +4217,16 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
   }
   function close() { overlay.classList.remove('open'); }
   window.__openVoiceProfile = open;
+  // "?" toggles: explanations stay folded until asked for
+  document.querySelectorAll('.help-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const help = document.getElementById(btn.getAttribute('aria-controls'));
+      if (!help) return;
+      const showing = !help.hasAttribute('hidden');
+      if (showing) { help.setAttribute('hidden', ''); btn.setAttribute('aria-expanded', 'false'); }
+      else { help.removeAttribute('hidden'); btn.setAttribute('aria-expanded', 'true'); }
+    });
+  });
   const skipHow = document.getElementById('profSkipHow');
   if (skipHow) skipHow.addEventListener('click', (e) => {
     e.preventDefault();
