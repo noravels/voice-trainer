@@ -196,6 +196,11 @@ body:has(#main.focus-mode) { overflow: hidden; }
 .prog-table td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
 .prog-empty { color: var(--text2); font-size: 13px; padding: 8px 0; }
 
+/* Voice profile chips (noravels fork) */
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 4px; }
+.chip { padding: 6px 14px; border-radius: 16px; font-size: 13px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); }
+.chip.selected { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+
 /* Check-in stage (noravels fork) */
 .checkin-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
 .checkin-row label { min-width: 160px; font-size: 14px; }
@@ -250,6 +255,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
 
 <div id="splash">
   <h1 id="splashTitle">Voice Training</h1>
+  <div id="onboardIntro" style="display:none;"></div>
   <p id="splashDesc">Real-time pitch detection, guided exercises, and recording.</p>
   <p id="splashClient" style="display:none;color:var(--accent);font-weight:600;"></p>
   <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);">
@@ -303,6 +309,18 @@ body:has(#main.focus-mode) { overflow: hidden; }
     </div>
   </details>
   <button class="primary start-btn" id="startBtn">Start Practice Session</button>
+  <button id="profileBtn" class="sm" style="max-width:340px;">Voice profile &amp; goals</button>
+  <details id="onboardBaseline" style="max-width:460px;display:none;">
+    <summary>First-time baseline (recommended once)</summary>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;padding:6px 2px;">
+      <div>Read the locked List 1 briefly, record it, then speak freely for ~30 s. This becomes your starting point — the weekly benchmark stage compares against it over time.</div>
+      <div style="margin-top:6px;">Baseline markers are saved to your profile on this device.</div>
+    </div>
+    <div style="text-align:center;margin:10px 0 4px;">
+      <button id="baselineMarkBtn" class="sm">Mark first read done</button>
+      <span id="baselineMarked" style="display:none;color:var(--success);font-size:13px;">&check; Baseline done (<span id="baselineDate"></span>)</span>
+    </div>
+  </details>
   <div style="font-size:12px;color:var(--text2);max-width:460px;">
     Routine informed by <a href="https://www.instagram.com/vamethod_transvoice/" target="_blank" rel="noopener noreferrer" style="color:var(--text2);text-decoration:underline;">@vamethod_transvoice</a> (VAMethod) &mdash; an independent practice aid, not affiliated with or endorsed by VAMethod.
   </div>
@@ -473,8 +491,64 @@ body:has(#main.focus-mode) { overflow: hidden; }
       </div>
     </div>
   </div>
-</div>
 
+  <div class="modal-overlay" id="profileOverlay" role="dialog" aria-modal="true" aria-labelledby="profTitle">
+    <div class="modal">
+      <h2 id="profTitle">Your voice profile</h2>
+      <div class="modal-sub">Shapes how the routine talks to you and how targets are framed. Stays on this device; edit anytime.</div>
+      <div id="profMsg" style="font-size:13px;color:var(--text2);margin-bottom:14px;"></div>
+
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">My goal</h3>
+      <div class="chip-group" data-key="goal">
+        <button class="chip" data-v="more-feminine">More feminine</button>
+        <button class="chip" data-v="androgynous">More androgynous</button>
+        <button class="chip" data-v="softer">Softer overall</button>
+        <button class="chip" data-v="phone-comfort">Comfort on phone/online calls</button>
+        <button class="chip" data-v="explore">Not sure yet — exploring</button>
+      </div>
+
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience</h3>
+      <div class="chip-group" data-key="experience">
+        <button class="chip" data-v="none">Completely new</button>
+        <button class="chip" data-v="videos">Watched some videos</button>
+        <button class="chip" data-v="regular">Practiced regularly</button>
+        <button class="chip" data-v="with-therapist">Worked / working with a therapist</button>
+      </div>
+
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Timbre I'm aiming for</h3>
+      <div class="chip-group" data-key="timbre">
+        <button class="chip" data-v="brighter">Brighter</button>
+        <button class="chip" data-v="softer">Softer</button>
+        <button class="chip" data-v="lighter">Lighter weight</button>
+        <button class="chip" data-v="forward">More forward</button>
+        <button class="chip" data-v="natural">Just natural</button>
+      </div>
+
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Things I'd rather avoid</h3>
+      <div class="chip-group" data-key="avoid">
+        <button class="chip" data-v="too-high">Sounding too high</button>
+        <button class="chip" data-v="artificial">Sounding artificial</button>
+        <button class="chip" data-v="nasal">Sounding nasal</button>
+        <button class="chip" data-v="strain">Straining my voice</button>
+        <button class="chip" data-v="theatrical">Sounding theatrical</button>
+      </div>
+
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Where I'll use it</h3>
+      <div class="chip-group" data-key="contexts">
+        <button class="chip" data-v="home">Practicing at home</button>
+        <button class="chip" data-v="phone">Phone / online calls</button>
+        <button class="chip" data-v="friends">Friends &amp; family</button>
+        <button class="chip" data-v="daily">Daily life</button>
+        <button class="chip" data-v="work">Work / school</button>
+      </div>
+
+      <div class="modal-actions">
+        <button id="profCloseBtn" class="sm">Cancel</button>
+        <button id="profSaveBtn" class="sm primary">Save profile</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- __ROUTINE_START__ -->
 <script>
 // noravels fork: fem / fem+fluid routine (VAMethod-informed), Turkish reading material.
@@ -3176,6 +3250,7 @@ if ('serviceWorker' in navigator) {
 // Nothing leaves the device.
 const PROG = (() => {
   const LS_KEY = 'vt_progress_v1';
+  const PROFILE_KEY = 'vt_profile_v1';
   const ss = window.sessionStorage;
   const ls = (() => { try { return window.localStorage; } catch (e) { return null; } })();
 
@@ -3204,6 +3279,24 @@ const PROG = (() => {
     try { ls.setItem(LS_KEY, JSON.stringify(h.slice(-500))); } catch (e) {}
   }
   function dayKey(ts) { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+
+  // ── Voice profile (spec: VoiceTrainingProfile) ──
+  function readProfile() {
+    if (!ls) return null;
+    try { return JSON.parse(ls.getItem(PROFILE_KEY) || 'null'); } catch (e) { return null; }
+  }
+  function writeProfile(p) {
+    if (!ls) return;
+    try { ls.setItem(PROFILE_KEY, JSON.stringify(p)); } catch (e) {}
+  }
+
+  const PROFILE_FIELDS = {
+    goal: ['more-feminine', 'androgynous', 'softer', 'phone-comfort', 'explore'],
+    experience: ['none', 'videos', 'regular', 'with-therapist'],
+    timbre: ['brighter', 'softer', 'lighter', 'forward', 'natural'],
+    avoid: ['too-high', 'artificial', 'nasal', 'strain', 'theatrical'],
+    contexts: ['home', 'phone', 'friends', 'daily', 'work'],
+  };
   function streak() {
     const h = readHistory().filter(s => s.activeMs >= 120000);
     if (!h.length) return 0;
@@ -3251,6 +3344,9 @@ const PROG = (() => {
     },
     discardSession() { cur = freshSession(); try { ss.removeItem('vtSession'); } catch (e) {} },
     readHistory, streak, dayKey,
+    readProfile,
+    saveProfile(p) { p.updatedAt = new Date().toISOString(); writeProfile(p); return p; },
+    profileFields: PROFILE_FIELDS,
   };
   return api;
 })();
@@ -3450,6 +3546,124 @@ document.getElementById('progCloseBtn').addEventListener('click', () => document
 document.getElementById('progressOverlay').addEventListener('click', e => {
   if (e.target === e.currentTarget) document.getElementById('progressOverlay').classList.remove('open');
 });
+
+// ── Voice profile onboarding (noravels fork, spec: onboarding + profile) ──
+(function initProfileUI() {
+  const overlay = document.getElementById('profileOverlay');
+  const SINGLE_KEY = 'goal';  // only goal is single-select
+
+  function currentSelections() {
+    const all = {};
+    document.querySelectorAll('.chip-group').forEach(g => {
+      const key = g.dataset.key;
+      all[key] = Array.from(g.querySelectorAll('.chip.selected')).map(c => c.dataset.v);
+    });
+    return all;
+  }
+  function markChips(p) {
+    document.querySelectorAll('.chip-group').forEach(g => {
+      const key = g.dataset.key;
+      const sel = (p && p[key]) || [];
+      g.querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('selected', sel.includes(c.dataset.v));
+      });
+    });
+  }
+  document.querySelectorAll('.chip-group').forEach(group => {
+    const key = group.dataset.key;
+    group.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if (key === 'goal') {
+          // single-select
+          const was = chip.classList.contains('selected');
+          group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+          if (!was) chip.classList.add('selected');
+        } else {
+          chip.classList.toggle('selected');
+        }
+      });
+    });
+  });
+
+  function open(preProfile, intro) {
+    markChips(preProfile);
+    const msg = document.getElementById('profMsg');
+    document.getElementById('profSaveBtn').textContent = intro ? 'Save & start' : 'Save profile';
+    msg.textContent = intro ? 'Pick anything that fits — you can change it anytime. Nothing leaves this device.' : '';
+    overlay.classList.add('open');
+    setTimeout(() => document.getElementById('profSaveBtn').focus(), 0);
+  }
+  function close() { overlay.classList.remove('open'); }
+  window.__openVoiceProfile = open;
+
+  document.getElementById('profileBtn').addEventListener('click', () => open(PROG.readProfile(), false));
+  document.getElementById('profCloseBtn').addEventListener('click', close);
+  overlay.addEventListener('click', e => {
+    // Intro mode: only the Save button closes it — the splash form underneath is not ready yet.
+    if (e.target === e.currentTarget && !document.getElementById('onboardIntro').style.display.includes('none') === false) close();
+  });
+
+  document.getElementById('profSaveBtn').addEventListener('click', () => {
+    const sel = currentSelections();
+    const existing = PROG.readProfile() || {};
+    const merged = { ...existing, ...sel, createdAt: existing.createdAt || new Date().toISOString() };
+    PROG.saveProfile(merged);
+    close();
+    if (document.getElementById('onboardIntro').style.display !== 'none') {
+      // finishing first-run onboarding: reveal the rest of the splash normally
+      document.getElementById('onboardIntro').style.display = 'none';
+      document.getElementById('splashDesc').style.display = '';
+      document.getElementById('onboardBaseline').style.display = '';
+      updateBaselineRow();
+    }
+  });
+
+  // ── First-run hook + baseline marker ──
+  const KEY = 'vt_onboarded_v1';
+  function updateBaselineRow() {
+    const p = PROG.readProfile();
+    const marked = document.getElementById('baselineMarked');
+    const btn = document.getElementById('baselineMarkBtn');
+    if (p && p.baselineDone) {
+      marked.style.display = '';
+      btn.style.display = 'none';
+      document.getElementById('baselineDate').textContent = new Date(p.baselineDone).toLocaleDateString();
+    } else {
+      marked.style.display = 'none';
+      btn.style.display = '';
+    }
+  }
+  document.getElementById('baselineMarkBtn').addEventListener('click', () => {
+    const p = PROG.readProfile() || {};
+    p.baselineDone = Date.now();
+    PROG.saveProfile(p);
+    updateBaselineRow();
+  });
+
+  window.__maybeRunOnboarding = function() {
+    const p = PROG.readProfile();
+    if (p && p.goal && p.goal.length) {
+      document.getElementById('onboardIntro').style.display = 'none';
+      document.getElementById('splashDesc').style.display = '';
+      document.getElementById('onboardBaseline').style.display = 'none';
+      return;
+    }
+    // First visit: collapse the how-to into the intro card and open profile first
+    document.getElementById('splashDesc').style.display = 'none';
+    const intro = document.getElementById('onboardIntro');
+    intro.style.display = '';
+    intro.innerHTML = '<p style="color:var(--text2);max-width:460px;line-height:1.6;">This is a self-practice space, not therapy. Brief questions next — they only shape the app on this device.</p>';
+    document.getElementById('onboardBaseline').style.display = '';
+    open(null, true);
+  };
+  // Register the Esc-close too (order: profile > confirm > progress)
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && overlay.classList.contains('open')) { e.stopPropagation(); close(); }
+  });
+})();
+
+// Onboarding gate: runs at splash, before user can start a session
+window.__maybeRunOnboarding();
 // Esc closes progress modals too
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
