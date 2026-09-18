@@ -339,8 +339,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <span id="baselineMarked" style="display:none;color:var(--success);font-size:13px;">&check; Baseline done (<span id="baselineDate"></span>)</span>
     </div>
   </details>
-  <div style="font-size:12px;color:var(--text2);max-width:460px;">
-    Routine informed by <a href="https://www.instagram.com/vamethod_transvoice/" target="_blank" rel="noopener noreferrer" style="color:var(--text2);text-decoration:underline;">@vamethod_transvoice</a> (VAMethod) &mdash; an independent practice aid, not affiliated with or endorsed by VAMethod.
+  <div style="font-size:12px;color:var(--text2);max-width:460px;text-align:center;">
+    Routines compiled from <a href="https://www.instagram.com/vamethod_transvoice/" style="color:var(--text2);text-decoration:underline;">VAMethod</a> (primary, Jimmy Chen), <a href="https://www.youtube.com/@TransVoiceLessons" style="color:var(--text2);text-decoration:underline;">TransVoiceLessons</a> (Zhea &amp; Clover) and the <a href="https://www.reddit.com/r/transvoice/" style="color:var(--text2);text-decoration:underline;">r/transvoice</a> community guides &mdash; an independent practice aid, not affiliated with or endorsed by any of them.
   </div>
   <div id="splashError" class="splash-error-box" role="alert" aria-live="polite">
     <p id="splashErrorMsg"></p>
@@ -531,6 +531,12 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="explore">Not sure yet — exploring</button>
       </div>
 
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">How do you want to work?</h3>
+      <div class="chip-group" data-key="path">
+        <button class="chip" data-v="practice-first">Practice-first — goal-oriented daily routine (faster to real speaking)</button>
+        <button class="chip" data-v="foundation-first">Foundation-first — understand the instrument before gender shaping (VAMethod lesson order)</button>
+      </div>
+
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience</h3>
       <div class="chip-group" data-key="experience">
         <button class="chip" data-v="none">Completely new</button>
@@ -689,6 +695,33 @@ const FLUID_STARTERS = [
   '60 saniye serbest konuşma: her nefeste rezonansın önde kaldığını kontrol et.',
 ];
 
+// Foundation-path prompt pools (instrument-first variant)
+const PLAY_PROMPTS = [
+  'Aynı sesi üç kez söyle: önce fısıltı gibi, sonra normal, sonra yüksek.', 
+  'Parmağınla karışık bir melodi taklit edip ağızdan çıkart (gg-uu-oo).',
+  'Dudaklarını sabit tut, sadece sesi yukarı-aşağı kaydır ("siren").',
+  'On ila yirmi arasında sayarken her sayıda sesi biraz az yüksek yap.',
+  '"Aaaa" sobre dinleyerek başla; sonra "şşş" ile başlattığın bir şey söyle.',
+  'Sesini mümkün olduğunca uzun tut ("uuu") sonra kes; tekrar başlat.',
+  'Sesi güvenle serbest bırak: yere kadar eğilmek yok, hastalık sesi yok.',
+  'Bir tekerleme söyle: her satırda ses tonunu değiştir.',
+  'Sesini günün ruh haline göre kaydır: yorgun, neşeli, telaşlı…',
+  'Aynı kelimeyi üç makro perdeyle söyle: "hmm", "aaaa", "eee".',
+];
+
+const SETUP_STARTERS = [
+  'Setup: "hh-ahh\u2026" sonra sorun: "Bu sabah neler yaptın?"',
+  'Setup: "ahh-" ile başlayıp cevapla: "Nasıl gidiyor?"',
+  'Setup: yawn-vowel ile "aa\u2026" sonrası: "Bu hafta ne değişti?"',
+  'Setup: "hh-ahh\u2026" sonra kendini kısa tanıt.',
+  'Setup: "ahh\u2026" + "bugün ne hissediyorsun?" — afili bir cevap ver.',
+  'Setup: "hh-ahh\u2026" sonra fiyat artışını anlat (öfkeli ton).',
+  'Setup: "ahh\u2026" + saat kaç olduğunu sor.',
+  'Setup: hafif yüksek perde + yawn — "hava" hakkında iki cümle söyle.',
+  'Setup: "ahh\u2026" sonra akşam planını anlat.',
+  'Setup: "hh-ahh\u2026" — telefonla arıyor gibi kendini tanıt.',
+];
+
 const ROUTINE = {
   name: "Voice Trainer — Fem & Fluid",
   client: "",
@@ -753,6 +786,112 @@ const ROUTINE = {
   fluidStarters: FLUID_STARTERS,
   starters: null,
 };
+
+// noravels fork: "Temel-first" (instrument-study) routine variant — follows
+// Jimmy's lesson order (first lessons are technique, not gender) and Zhea's
+// play-first month. Selected at onboarding; same engine, different PATH.
+const ROUTINE_FOUNDATION = {
+  name: "Voice Trainer — Foundation",
+  stages: [
+    { id: 'checkin', name: '0. Check-in', short: 'Check-in', type: 'checkin', config: {
+      instruction: 'Before starting: any throat pain, burning, or hoarseness? If yes, stop and rest \u2014 health beats streaks.'
+    }},
+    { id: 'play', name: '1. Play', short: 'Play', type: 'free-talk', config: {
+      promptsKey: 'playPrompts', zone: null,
+      instruction: 'Free play, no judging: slide your pitch up and down, stop and start, make random sounds, get louder and softer. No target, no zone \u2014 just learn what your voice can do and how it feels. If it gets tighter as you go higher, notice it; that\u2019s your cue to relax.',
+      recording: false
+    }},
+    { id: 'pitchmatch', name: '2. Pitch Stabilize', short: 'Pitch', type: 'sustained-tone', config: {
+      notes: ['G3','A3'], duration: 12,
+      instruction: 'Match the reference note and HOLD it steady: same pitch, same volume, no drift. If the pitch sags, the register balance shifts \u2014 steadiness here is the foundation everything else builds on.',
+      showReference: true
+    }},
+    { id: 'regexplore', name: '3. Strong vs Soft', short: 'Texture', type: 'repeat-on-note', config: {
+      notes: ['A3'], reps: 4,
+      instruction: 'Same note, alternate textures: 1-2-3 strong ("glade"-like, powerful), 1-2-3 soft (light, easy). You are meeting the two registers \u2014 chest (strong) and head (soft). Noticing the difference IS the exercise.',
+      showReference: true, display: '<b style="color:var(--target)">STRONG</b> <b style="color:var(--accent)">soft</b> <b style="color:var(--target)">STRONG</b> <b style="color:var(--accent)">soft</b>'
+    }},
+    { id: 'tongueroot', name: '3b. Tongue Root', short: 'T-Root', type: 'resonance', config: {
+      note: 'A3',
+      preamble: 'Tongue-root agility: tongue tip stays touching the back of the bottom teeth. Move the ROOT up and down like a gentle \u201Cla-la\u201D. The root moves the larynx \u2014 never push the larynx.',
+      instruction: 'On A3, move the tongue root UP (small cavity) and DOWN + yawn (large cavity) while the vowel goes dark \u2194 bright. Lip and jaw stay still.',
+      steps: [
+        { label: 'Up', description: 'small cavity \u2014 bright' },
+        { label: 'Down', description: 'large cavity \u2014 dark' },
+        { label: 'Up', description: 'back to small \u2014 precise switches' },
+        { label: 'Down', description: 'large again \u2014 smooth returns' },
+      ],
+      showReference: true
+    }},
+    { id: 'soft', name: '4. Softness (Yawn)', short: 'Soft', type: 'resonance', config: {
+      note: 'B3',
+      preamble: 'Give yourself a full, easy yawn.',
+      instruction: 'Keep the yawn-axis and say these Turkish phrases \u2014 same soft, large-space voice. Then note: it does NOT sound feminine alone. That is fine \u2014 softness is one ingredient. Partial focus = partial results.',
+      steps: [
+        { label: 'Phrase', description: '"Ah, yorgunum bug\u00fcn."' },
+        { label: 'Phrase', description: '"Ah, nas\u0131l oldu bu?"' },
+        { label: 'Phrase', description: '"Ah, g\u00FCzel bir hat\u0131ra."' },
+      ],
+      showReference: true
+    }},
+    { id: 'bright', name: '4b. Brightness (Ew)', short: 'Bright', type: 'repeat-on-note', config: {
+      notes: ['A3'], reps: 3,
+      instruction: 'Now the OTHER ingredient alone: loud, bright, borderline annoying "ew" ("eyvah!" energy). It will NOT sound feminine \u2014 that is expected. You are isolating one element; blending comes after both exist independently.',
+      showReference: true
+    }},
+    { id: 'blend', name: '5. Register Blend', short: 'Blend', type: 'glide', config: {
+      direction: 'up', startNote: 'F3', zone: { low: 'C4', high: 'F4' },
+      referenceNote: 'F3', minAttempts: 3,
+      instruction: 'Messa di voce: softly glide up on "ee", continue down on "oo". Volume arches then softens. Cracking is GOOD \u2014 it shows both registers. One connected journey per breath, no stopping.'
+    }},
+    { id: 'combine', name: '6. Combine (Setup)', short: 'Combine', type: 'free-talk', config: {
+      promptsKey: 'setupStarters', zone: { low: 'F3', high: 'A#3' },
+      instruction: 'Now combine softness + brightness the VAMethod way: SETUP (slightly high, yawn-vowel, connected) then let the phrase ride on that settle. Setup first, phrase second, always connected.',
+      recording: true
+    }},
+    { id: 'read', name: '6b. Read', short: 'Read', type: 'read-aloud', config: {
+      listsKey: 'sentences', zone: { low: 'F3', high: 'A#3' },
+      instruction: 'Read Turkish sentences with the same setup discipline. This is the Foundation path\u2019s speaking bridge \u2014 everything reconnects to real sentences.',
+      recording: true
+    }},
+  ],
+
+  sentences: TURKISH_SENTENCES,
+  emotionStarters: EMOTION_STARTERS,
+  fluidStarters: FLUID_STARTERS,
+  starters: null,
+};
+
+// noravels fork: swap the active routine between practice-first and
+// foundation-first paths. ROUTINE is const — we re-point its data onto the
+// chosen variant so every existing reference keeps working.
+window.__applyRoutinePath = function(pathId) {
+  const R = pathId === 'foundation-first' ? ROUTINE_FOUNDATION : ROUTINE_PRACTICE;
+  ROUTINE.name = R.name;
+  ROUTINE.description = R.description;
+  ROUTINE.stages = R.stages;
+  ROUTINE.sentences = R.sentences;
+  ROUTINE.emotionStarters = R.emotionStarters;
+  ROUTINE.fluidStarters = R.fluidStarters;
+  try {
+    document.getElementById('splashTitle').textContent = R.name;
+    document.getElementById('splashDesc').textContent = R.description;
+  } catch (e) {}
+  // If a session is open, reset to the first stage of the new routine.
+  try {
+    if (sessionStartTime !== null && typeof renderStageNav === 'function') {
+      currentStage = 0;
+      stagesCompleted.clear();
+      stageStates = {};
+      stageState = {};
+      stagesCompleted.add(0); // keep showing reset cleanly
+      renderStageNav();
+      renderCurrentStage();
+      updateNavButtons();
+    }
+  } catch (e) {}
+};
+const ROUTINE_PRACTICE = ROUTINE; // alias: the first ROUTINE literal is practice-first
 // Starter prompts are plain strings; wire them in the same place the engine
 // binds its built-in data arrays (below), after ROUTINE is consumed.
 </script>
@@ -940,6 +1079,10 @@ if (ROUTINE.starters === null) ROUTINE.starters = STARTERS_DATA;
 // noravels fork: free-talk stages reference their prompt arrays by key.
 if (ROUTINE.emotionStarters === undefined || ROUTINE.emotionStarters === null) ROUTINE.emotionStarters = STARTERS_DATA;
 if (ROUTINE.fluidStarters === undefined || ROUTINE.fluidStarters === null) ROUTINE.fluidStarters = STARTERS_DATA;
+// noravels fork: Foundation path prompt pools.
+if (ROUTINE_FOUNDATION.playPrompts === undefined || !ROUTINE_FOUNDATION.playPrompts) ROUTINE_FOUNDATION.playPrompts = PLAY_PROMPTS;
+if (ROUTINE_FOUNDATION.setupStarters === undefined || !ROUTINE_FOUNDATION.setupStarters) ROUTINE_FOUNDATION.setupStarters = SETUP_STARTERS;
+if (ROUTINE_FOUNDATION.sentences === null) ROUTINE_FOUNDATION.sentences = HARVARD_DATA;
 
 // ─── AUDIO ENGINE ────────────────────────────────────────────────────
 let audioCtx = null;
@@ -3702,7 +3845,7 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
 // ── Voice profile onboarding (noravels fork, spec: onboarding + profile) ──
 (function initProfileUI() {
   const overlay = document.getElementById('profileOverlay');
-  const SINGLE_KEY = 'goal';  // only goal is single-select
+  const SINGLE_KEYs = ['goal', 'path'];  // single-select groups
 
   function currentSelections() {
     const all = {};
@@ -3725,7 +3868,7 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     const key = group.dataset.key;
     group.querySelectorAll('.chip').forEach(chip => {
       chip.addEventListener('click', () => {
-        if (key === 'goal') {
+        if (SINGLE_KEYs.includes(key)) {
           // single-select
           const was = chip.classList.contains('selected');
           group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
@@ -3760,6 +3903,10 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     const existing = PROG.readProfile() || {};
     const merged = { ...existing, ...sel, createdAt: existing.createdAt || new Date().toISOString() };
     PROG.saveProfile(merged);
+    // Path select swaps the active routine (practice-first = default; foundation-first = instrument-study order)
+    if (sel.path && sel.path.length) {
+      window.__applyRoutinePath(sel.path[0]);
+    }
     close();
     if (document.getElementById('onboardIntro').style.display !== 'none') {
       // finishing first-run onboarding: reveal the rest of the splash normally
@@ -3769,6 +3916,12 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
       updateBaselineRow();
     }
   });
+
+  // At app boot: apply the saved path to pick the active ROUTINE.
+  const savedP0 = PROG.readProfile();
+  if (savedP0 && savedP0.path && savedP0.path.length) {
+    window.__applyRoutinePath(savedP0.path[0]);
+  }
 
   // ── First-run hook + baseline marker ──
   const KEY = 'vt_onboarded_v1';
