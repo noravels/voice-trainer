@@ -542,7 +542,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <h2 id="profTitle">Your voice profile</h2>
       <div class="modal-sub">Shapes how the routine talks to you and how targets are framed. Stays on this device; edit anytime.</div>
 
-      <details id="profHow" open style="max-width:640px;text-align:left;margin:0 0 14px;">
+      <details id="profHow" style="max-width:640px;text-align:left;margin:0 0 14px;">
         <summary style="cursor:pointer;font-size:14px;font-weight:600;color:var(--text);">How this works &mdash; read me once (~2 min)</summary>
         <div style="font-size:12px;color:var(--text2);margin:6px 0 2px;">Session flow, how often to train, which graph to use, what the app refuses to score, and where your data lives.
           <a href="#" id="profSkipHow" style="color:var(--accent);text-decoration:underline;margin-left:4px;">Skip to the questions &rarr;</a>
@@ -583,8 +583,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <button id="profHowToggle" class="sm" style="display:none;margin:0 0 14px;">Show "How this works" again</button>
       <div id="profMsg" style="font-size:13px;color:var(--text2);margin-bottom:14px;"></div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">My goal <button class="help-q" type="button" aria-expanded="false" aria-controls="help-my-goal" title="What is this and why do we ask?" aria-label="Explain: My goal">?</button></h3>
-      <div class="field-help" id="help-my-goal" hidden>What you want to get out of this. It doesn't lock anything &mdash; it just picks which routine you get and how the app talks about targets.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">My goal <button class="help-q" type="button" aria-expanded="false" aria-controls="help-goal" title="What is this and why do we ask?" aria-label="Explain: My goal">?</button></h3>
+      <div class="field-help" id="help-goal" hidden>What you want out of this. It does not lock anything &mdash; it picks which routine you get and how the app frames targets.</div>
       <div class="chip-group" data-key="goal">
         <button class="chip" data-v="more-feminine">More feminine</button>
         <button class="chip" data-v="androgynous">More androgynous</button>
@@ -593,29 +593,22 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="explore">Not sure yet — exploring</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">How do you want to work? <button class="help-q" type="button" aria-expanded="false" aria-controls="help-how-do-you-want-to-work" title="What is this and why do we ask?" aria-label="Explain: How do you want to work?">?</button></h3>
-      <div class="field-help" id="help-how-do-you-want-to-work" hidden>Two honest routes to the same place. <b>Practice-first</b> starts from real speech on day one (faster to sounding natural, less theory). <b>Foundation-first</b> trains each piece of the instrument alone first &mdash; play, pitch control, tongue root, softness, brightness &mdash; then combines them (this is the order VAMethod teaches in; slower start, fewer bad habits). You can switch later in this same panel.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">How do you want to work? <button class="help-q" type="button" aria-expanded="false" aria-controls="help-path" title="What is this and why do we ask?" aria-label="Explain: How do you want to work?">?</button></h3>
+      <div class="field-help" id="help-path" hidden>Two honest routes to the same place. <b>Practice-first</b> starts from real speech on day one (faster to sounding natural, less theory). <b>Foundation-first</b> trains each piece of the instrument alone first &mdash; play, pitch control, tongue root, softness, brightness &mdash; then combines them (the order VAMethod teaches in; slower start, fewer entrenched habits). You can switch later in this panel.</div>
       <div class="chip-group" data-key="path">
         <button class="chip" data-v="practice-first">Practice-first — goal-oriented daily routine (faster to real speaking)</button>
         <button class="chip" data-v="foundation-first">Foundation-first — understand the instrument before gender shaping (VAMethod lesson order)</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Which language(s) do you want to practice in? <span style="font-weight:400">(multi-select)</span> <button class="help-q" type="button" aria-expanded="false" aria-controls="help-practiceLanguages" title="What is this and why do we ask?" aria-label="Explain the language choice">?</button></h3>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Which language(s) do you want to practice in? <span style="font-weight:400">(multi-select)</span> <button class="help-q" type="button" aria-expanded="false" aria-controls="help-lang" title="What is this and why do we ask?" aria-label="Explain: Which languages">?</button></h3>
+      <div class="field-help" id="help-lang" hidden>The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages (tongue root, resonance, blend) are the same in every language &mdash; that is physics, not language. Add more later; each language has its own sentence lists and prompts.</div>
       <div class="chip-group" data-key="practiceLanguages" data-multi="true">
         <button class="chip" data-v="tr">T&uuml;rk&ccedil;e</button>
         <button class="chip" data-v="en">English</button>
       </div>
-      <div class="field-help" id="help-practiceLanguages" hidden>The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages (tongue root, resonance, blend) are the same in every language &mdash; those are physics, not language.</div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience <button class="help-q" type="button" aria-expanded="false" aria-controls="help-which-language-s-do-you-want-to-practice" title="What is this and why do we ask?" aria-label="Explain: Which language(s) do you want to practice in? (multi-select — prosody packs match each)
-      
-        T&uuml;rk&ccedil;e
-        English
-      
-      The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages (tongue root, resonance, blend) are the same in every language &mdash; those are physics, not language.
-
-      Experience">?</button></h3>
-      <div class="field-help" id="help-which-language-s-do-you-want-to-practice" hidden>So the app knows how much explaining to do. Nothing is assumed &mdash; "completely new" is a perfectly good answer.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience <button class="help-q" type="button" aria-expanded="false" aria-controls="help-experience" title="What is this and why do we ask?" aria-label="Explain: Experience">?</button></h3>
+      <div class="field-help" id="help-experience" hidden>So the app knows how much explaining to do. Nothing is assumed &mdash; "completely new" is a perfectly good answer.</div>
       <div class="chip-group" data-key="experience">
         <button class="chip" data-v="none">Completely new</button>
         <button class="chip" data-v="videos">Watched some videos</button>
@@ -623,8 +616,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="with-therapist">Worked / working with a therapist</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Timbre I'm aiming for <button class="help-q" type="button" aria-expanded="false" aria-controls="help-timbre-i-m-aiming-for---what-is-this-" title="What is this and why do we ask?" aria-label="Explain what timbre means">?</button></h3>
-      <div class="field-help" id="help-timbre-i-m-aiming-for-mdash-what-is-this" hidden><b>Timbre</b> (say <i>TAM-ber</i>) is the <i>color</i> of your voice &mdash; the thing that makes two people on the same note sound like different people. It is not pitch (high/low) and not loudness. It comes mainly from <b>resonance</b>: how big the space in your throat and mouth is, and where the sound is focused. So "brighter" = smaller/more forward space; "softer" = less pressed, more relaxed texture. Pick whatever attracts you; the routine just leans its cues that way. Nothing here is a commitment.</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Timbre I'm aiming for <button class="help-q" type="button" aria-expanded="false" aria-controls="help-timbre" title="What is this and why do we ask?" aria-label="Explain: Timbre">?</button></h3>
+      <div class="field-help" id="help-timbre" hidden><b>Timbre</b> (say <i>TAM-ber</i>) is the <i>color</i> of your voice &mdash; what makes two people on the same note sound different. It is not pitch (high/low) and not loudness. It comes mainly from <b>resonance</b>: how big the space in your throat and mouth is, and where the sound is focused. "Brighter" = smaller, more forward space; "softer" = less pressed, more relaxed texture. Pick whatever attracts you &mdash; nothing here is a commitment.</div>
       <div class="chip-group" data-key="timbre">
         <button class="chip" data-v="brighter">Brighter</button>
         <button class="chip" data-v="softer">Softer</button>
@@ -633,8 +626,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="natural">Just natural</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Things I'd rather avoid <button class="help-q" type="button" aria-expanded="false" aria-controls="help-things-i-d-rather-avoid" title="What is this and why do we ask?" aria-label="Explain: Things I'd rather avoid">?</button></h3>
-      <div class="field-help" id="help-things-i-d-rather-avoid" hidden>Common traps. Tick any that worry you and the routine will explicitly warn when an exercise tends to cause that &mdash; e.g. "don't chase high pitch" or "keep it non-nasal".</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Things I'd rather avoid <button class="help-q" type="button" aria-expanded="false" aria-controls="help-avoid" title="What is this and why do we ask?" aria-label="Explain: Things to avoid">?</button></h3>
+      <div class="field-help" id="help-avoid" hidden>Common traps. Tick any that worry you and the routine will warn when an exercise tends to cause that &mdash; e.g. "do not chase high pitch" or "keep it non-nasal".</div>
       <div class="chip-group" data-key="avoid">
         <button class="chip" data-v="too-high">Sounding too high</button>
         <button class="chip" data-v="artificial">Sounding artificial</button>
@@ -643,8 +636,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="theatrical">Sounding theatrical</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Where I'll use it <button class="help-q" type="button" aria-expanded="false" aria-controls="help-where-i-ll-use-it" title="What is this and why do we ask?" aria-label="Explain: Where I'll use it">?</button></h3>
-      <div class="field-help" id="help-where-i-ll-use-it" hidden>Where your voice has to work in real life. This decides which contexts the practice prompts imitate (phone calls, home, friends, work).</div>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Where I&#39;ll use it <button class="help-q" type="button" aria-expanded="false" aria-controls="help-contexts" title="What is this and why do we ask?" aria-label="Explain: Where I will use it">?</button></h3>
+      <div class="field-help" id="help-contexts" hidden>Where your voice has to work in real life. This decides which contexts the practice prompts imitate (phone calls, home, friends, work).</div>
       <div class="chip-group" data-key="contexts">
         <button class="chip" data-v="home">Practicing at home</button>
         <button class="chip" data-v="phone">Phone / online calls</button>
@@ -3252,7 +3245,17 @@ async function tryStartSession() {
     await initAudio();
     initUnifiedBuffer();
   } catch (e) {
-    errMsg.textContent = 'Microphone access was denied or the device is unavailable. Check your browser address bar (or site settings) to allow microphone access, then try again.';
+    const name = (e && e.name) || 'Error';
+    const base = 'Microphone problem (' + name + '). ';
+    if (name === 'NotFoundError') {
+      errMsg.innerHTML = base + 'This browser sees <b>no microphone at all</b>. Most often that is an OS-level permission, not a site one: on <b>macOS</b> open System Settings &rarr; Privacy &amp; Security &rarr; Microphone and enable the browser you are using (each Chrome instance/profile needs its own permission). Also check that a mic is actually connected and not disabled in the browser&rsquo;s own site settings.';
+    } else if (name === 'NotAllowedError') {
+      errMsg.innerHTML = base + 'Access is blocked. Click the padlock/tune icon in the address bar &rarr; Microphone &rarr; Allow, then try again. If the browser window is not focused, Chrome silently denies the request &mdash; click the page first.';
+    } else if (name === 'NotReadableError') {
+      errMsg.innerHTML = base + 'The device exists but is busy &mdash; another app (call, recorder, another tab) is holding it. Close that app and retry.';
+    } else {
+      errMsg.innerHTML = base + 'Check the browser address bar for a blocked-microphone icon, and the OS privacy settings, then try again.';
+    }
     errEl.classList.add('open');
     setTimeout(() => document.getElementById('splashRetryBtn').focus(), 0);
     return;
@@ -3633,6 +3636,22 @@ async function tryStartSession() {
 }
 
 document.getElementById('startBtn').addEventListener('click', tryStartSession);
+
+// Early mic awareness: if the browser exposes no audio input at all, say so on the
+// splash instead of letting the user hit Start and get a cryptic failure.
+(function micPreflight() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  navigator.mediaDevices.enumerateDevices().then(devs => {
+    const ins = devs.filter(d => d.kind === 'audioinput');
+    if (ins.length) return;
+    const warn = document.createElement('div');
+    warn.id = 'micPreflightWarn';
+    warn.style.cssText = 'max-width:460px;font-size:12px;color:var(--warning);line-height:1.6;text-align:left;border-left:2px solid var(--warning);padding-left:10px;';
+    warn.innerHTML = '<b>No microphone visible to this browser.</b> It will not be able to listen yet. On macOS: System Settings &rarr; Privacy &amp; Security &rarr; Microphone &rarr; enable your browser (a second Chrome install or a debug profile needs its own permission). Then reload this page.';
+    const startBtn = document.getElementById('startBtn');
+    if (startBtn && startBtn.parentElement) startBtn.parentElement.insertBefore(warn, startBtn);
+  }).catch(() => {});
+})();
 document.getElementById('splashRetryBtn').addEventListener('click', tryStartSession);
 
 document.getElementById('prevBtn').addEventListener('click', () => setStage(currentStage - 1));
@@ -4206,8 +4225,10 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     const how = document.getElementById('profHow');
     const howToggle = document.getElementById('profHowToggle');
     if (how && howToggle) {
-      if (intro) { how.open = true; howToggle.style.display = 'none'; }
-      else { how.open = false; howToggle.style.display = ''; }
+      // always folded: the form is questions first, explanations on demand
+      how.open = false;
+      howToggle.style.display = '';
+      howToggle.textContent = 'Show "How this works" (session flow, how often, which graph to use)';
     }
     const msg = document.getElementById('profMsg');
     document.getElementById('profSaveBtn').textContent = intro ? 'Save & start' : 'Save profile';
@@ -4260,7 +4281,11 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     if (sel.path && sel.path.length) {
       window.__applyRoutinePath(sel.path[0]);
     }
+    const wasIntro = document.getElementById('profSaveBtn').textContent.indexOf('start') >= 0;
     close();
+    // Onboarding's "Save & start" really starts: splash closes and the browser is
+    // asked for microphone access right away instead of leaving a dead splash.
+    if (wasIntro && typeof tryStartSession === 'function') setTimeout(tryStartSession, 60);
     if (document.getElementById('onboardIntro').style.display !== 'none') {
       // finishing first-run onboarding: reveal the rest of the splash normally
       document.getElementById('onboardIntro').style.display = 'none';
