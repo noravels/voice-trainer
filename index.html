@@ -482,7 +482,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <div><div class="k">Sessions recorded</div><div class="v" id="progTotal">0</div></div>
       </div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">How practice has felt (last sessions)</h3>
-      <table class="prog-table"><thead><tr><th>Date</th><th>Comfort</th><th>Fatigue</th><th>Target</th><th>Pain</th></tr></thead><tbody id="progCheckin"></tbody></table>
+      <table class="prog-table"><thead><tr><th>Date</th><th>Comfort</th><th>Fatigue</th><th>Target</th><th>Effort</th><th>Pain</th></tr></thead><tbody id="progCheckin"></tbody></table>
       <div id="progTrend" style="margin:12px 0;"></div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Minutes per day (last 3 weeks)</h3>
       <div class="prog-bars" id="progBars"></div>
@@ -496,6 +496,13 @@ body:has(#main.focus-mode) { overflow: hidden; }
       </div>
       <div class="ab-compare" id="abCompareBox" style="display:none;"></div>
       <div id="progRecArchive" class="rec-archive"></div>
+      <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Reference voices</h3>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px;">Collect voices you like (links or notes) to widen your sense of what a feminine voice can be. Observe them objectively — many valid fem voices are lower in pitch or larger in resonance than the stereotype suggests. Avoid judging your own voice as good/bad; compare qualities, not worth.</div>
+      <textarea id="progRefs" rows="4" style="width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:13px;font-family:inherit;" placeholder="e.g. https://youtube.com/... — low-pitched fem voice I like&#10;e.g. a friend's voice: bright but relaxed"></textarea>
+      <div style="text-align:right;margin:6px 0 12px;">
+        <button id="progRefsSave" class="sm">Save references</button>
+        <span id="progRefsSaved" style="display:none;color:var(--success);font-size:12px;">&check; saved</span>
+      </div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Recent sessions</h3>
       <table class="prog-table"><thead><tr><th>Date</th><th>Time</th><th>Stages</th><th>Brightness</th></tr></thead><tbody id="progRecent"></tbody></table>
       <div class="modal-actions">
@@ -2599,6 +2606,7 @@ function renderCheckinStage(el, stage) {
     { key: 'comfort', label: 'Comfort (0\u201310)', hint: 'How easy does your voice feel today?' },
     { key: 'fatigue', label: 'Fatigue (0\u201310)', hint: 'How tired is your voice right now?' },
     { key: 'alignment', label: 'Close to target (0\u201310)', hint: 'How close do you feel to your target voice?' },
+    { key: 'effort', label: 'Effort going higher (0\u201310)', hint: 'On higher pitches: tight, harsh, crackly, or labored? (10 = very strained)' },
   ];
   const stored = PROG.checkinScores();
 
@@ -2634,7 +2642,7 @@ function renderCheckinStage(el, stage) {
     banner.style.display = painBox.checked ? 'block' : 'none';
   }
   document.getElementById('ciContinue').onclick = () => {
-    const scores = { comfort: +document.getElementById('ci-comfort').value, fatigue: +document.getElementById('ci-fatigue').value, alignment: +document.getElementById('ci-alignment').value };
+    const scores = { comfort: +document.getElementById('ci-comfort').value, fatigue: +document.getElementById('ci-fatigue').value, alignment: +document.getElementById('ci-alignment').value, effort: +document.getElementById('ci-effort').value };
     const pain = document.getElementById('ci-pain').checked;
     PROG.setCheckin({ ...scores, painFlag: pain });
     engine.complete();
@@ -3737,9 +3745,9 @@ function openProgressDashboard() {
   const checkinRows = h.slice(-7).reverse().map(s => {
     const d = new Date(s.date);
     const ci = s.checkin;
-    if (!ci) return `<tr><td>${d.toLocaleDateString()}</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td></tr>`;
-    return `<tr><td>${d.toLocaleDateString()}</td><td>${ci.comfort ?? '\u2014'}</td><td>${ci.fatigue ?? '\u2014'}</td><td>${ci.alignment ?? '\u2014'}</td><td>${ci.painFlag ? '<span style="color:var(--warning);">yes</span>' : 'no'}</td></tr>`;
-  }).join('') || '<tr><td colspan="5" style="color:var(--text2)">No check-ins yet.</td></tr>';
+    if (!ci) return `<tr><td>${d.toLocaleDateString()}</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>`;
+    return `<tr><td>${d.toLocaleDateString()}</td><td>${ci.comfort ?? '—'}</td><td>${ci.fatigue ?? '—'}</td><td>${ci.alignment ?? '—'}</td><td>${ci.effort ?? '—'}</td><td>${ci.painFlag ? '<span style="color:var(--warning);">yes</span>' : 'no'}</td></tr>`;
+  }).join('') || '<tr><td colspan="6" style="color:var(--text2)">No check-ins yet.</td></tr>';
 
   document.getElementById('progStreak').textContent = streakN;
   document.getElementById('progTotal').textContent = h.length;
@@ -3748,6 +3756,19 @@ function openProgressDashboard() {
   document.getElementById('progBars').innerHTML = bars || '<div class="prog-empty">No data yet.</div>';
   document.getElementById('progStageTable').innerHTML = stageRows;
   document.getElementById('progRecent').innerHTML = recent;
+
+  // Reference voices: load + save (stored in profile)
+  const refBox = document.getElementById('progRefs');
+  const savedProfileRefs = (PROG.readProfile() || {}).referenceVoices || '';
+  refBox.value = savedProfileRefs || '';
+  document.getElementById('progRefsSave').addEventListener('click', () => {
+    const p = PROG.readProfile() || {};
+    p.referenceVoices = refBox.value;
+    PROG.saveProfile(p);
+    const saved = document.getElementById('progRefsSaved');
+    saved.style.display = '';
+    setTimeout(() => { saved.style.display = 'none'; }, 2500);
+  });
   ov.classList.add('open');
   setTimeout(() => document.getElementById('progCloseBtn').focus(), 0);
 }
