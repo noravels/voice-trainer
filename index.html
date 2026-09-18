@@ -729,7 +729,8 @@ const SETUP_STARTERS = [
   'Setup: "hh-ahh\u2026" — telefonla arıyor gibi kendini tanıt.',
 ];
 
-const ROUTINE = {
+// noravels fork: practice-first routine (default path)
+const ROUTINE_PRACTICE = {
   name: "Voice Trainer — Fem & Fluid",
   client: "",
   description: "Daily 15\u201320 min routine: warm-up, resonance, volume, Turkish sentences, prosody, fluidity. Progress is tracked on this device.",
@@ -870,19 +871,14 @@ const ROUTINE_FOUNDATION = {
 };
 
 // noravels fork: swap the active routine between practice-first and
-// foundation-first paths. ROUTINE is const — we re-point its data onto the
-// chosen variant so every existing reference keeps working.
+// foundation-first paths. ROUTINE is a var pointing at one of the variants;
+// applyRoutinePath re-points it (and data arrays) so all references update.
+let ROUTINE = ROUTINE_PRACTICE;
 window.__applyRoutinePath = function(pathId) {
-  const R = pathId === 'foundation-first' ? ROUTINE_FOUNDATION : ROUTINE_PRACTICE;
-  ROUTINE.name = R.name;
-  ROUTINE.description = R.description;
-  ROUTINE.stages = R.stages;
-  ROUTINE.sentences = R.sentences;
-  ROUTINE.emotionStarters = R.emotionStarters;
-  ROUTINE.fluidStarters = R.fluidStarters;
+  ROUTINE = pathId === 'foundation-first' ? ROUTINE_FOUNDATION : ROUTINE_PRACTICE;
   try {
-    document.getElementById('splashTitle').textContent = R.name;
-    document.getElementById('splashDesc').textContent = R.description;
+    document.getElementById('splashTitle').textContent = ROUTINE.name;
+    document.getElementById('splashDesc').textContent = ROUTINE.description;
   } catch (e) {}
   // If a session is open, reset to the first stage of the new routine.
   try {
@@ -891,14 +887,12 @@ window.__applyRoutinePath = function(pathId) {
       stagesCompleted.clear();
       stageStates = {};
       stageState = {};
-      stagesCompleted.add(0); // keep showing reset cleanly
       renderStageNav();
       renderCurrentStage();
       updateNavButtons();
     }
   } catch (e) {}
 };
-const ROUTINE_PRACTICE = ROUTINE; // alias: the first ROUTINE literal is practice-first
 // Starter prompts are plain strings; wire them in the same place the engine
 // binds its built-in data arrays (below), after ROUTINE is consumed.
 </script>
@@ -4119,6 +4113,6 @@ document.addEventListener('keydown', e => {
   if (po.classList.contains('open')) { po.classList.remove('open'); return; }
 });
 </script>
-<div class="app-footer">v1.6.0 (noravels fem-fluid fork) &middot; routine informed by <a href="https://www.instagram.com/vamethod_transvoice/">VAMethod</a> &middot; &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
+<div class="app-footer">v1.7.0 (noravels fem-fluid fork) &middot; routine informed by <a href="https://www.instagram.com/vamethod_transvoice/">VAMethod</a> &middot; &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
 </body>
 </html>
