@@ -214,6 +214,14 @@ body:has(#main.focus-mode) { overflow: hidden; }
 
 /* Voice profile chips (noravels fork) */
 .chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 4px; }
+.field-help { font-size:12px; line-height:1.6; color:var(--text2); max-width:560px; margin:0 0 6px; }
+.field-help b { color:var(--text); }
+.learn-list { max-width:600px; text-align:left; }
+.learn-item { font-size:13px; line-height:1.65; color:var(--text2); padding:8px 0; border-bottom:1px solid var(--border,rgba(255,255,255,0.06)); }
+.learn-item:last-child { border-bottom:none; }
+.learn-item .t { color:var(--text); font-weight:600; }
+.learn-item a { color:var(--accent); text-decoration:underline; }
+.learn-item .why { margin-top:3px; }
 .chip { padding: 6px 14px; border-radius: 16px; font-size: 13px; border: 1px solid var(--border); background: var(--surface2); color: var(--text2); }
 .chip.selected { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
 
@@ -311,6 +319,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div style="margin-top:4px;"><b style="color:var(--text);">Formants</b> &mdash; measurable traces of resonance (shown as spectrogram bands; kept in the background until you want them).</div>
     </div>
   </details>
+  <button id="splashLearnBtn" class="sm" style="max-width:460px;">📚 Learn &amp; sources &mdash; what is this and why?</button>
   <details class="device-setup" style="max-width:460px;">
     <summary>Audio devices</summary>
     <div class="device-row">
@@ -355,6 +364,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div id="pauseBadge" role="button" tabindex="0" aria-label="Paused — click to resume" title="Click or press Space to resume" style="display:none;background:var(--warning);color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;">PAUSED</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <button id="learnBtn" class="sm" title="What each part of the voice is, why we train it, and source links">Learn</button>
       <button id="progBtn" class="sm" title="Practice history and trends (stored on this device)">Progress</button>
       <button id="pauseToggleBtn" class="sm" title="Pause/resume the graph (Space)" aria-label="Pause or resume the graph">Pause</button>
       <button id="sessionRecBtn" class="sm">Record Session</button>
@@ -530,6 +540,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div id="profMsg" style="font-size:13px;color:var(--text2);margin-bottom:14px;"></div>
 
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">My goal</h3>
+      <div class="field-help">What you want to get out of this. It doesn't lock anything &mdash; it just picks which routine you get and how the app talks about targets.</div>
       <div class="chip-group" data-key="goal">
         <button class="chip" data-v="more-feminine">More feminine</button>
         <button class="chip" data-v="androgynous">More androgynous</button>
@@ -539,6 +550,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       </div>
 
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">How do you want to work?</h3>
+      <div class="field-help">Two honest routes to the same place. <b>Practice-first</b> starts from real speech on day one (faster to sounding natural, less theory). <b>Foundation-first</b> trains each piece of the instrument alone first &mdash; play, pitch control, tongue root, softness, brightness &mdash; then combines them (this is the order VAMethod teaches in; slower start, fewer bad habits). You can switch later in this same panel.</div>
       <div class="chip-group" data-key="path">
         <button class="chip" data-v="practice-first">Practice-first — goal-oriented daily routine (faster to real speaking)</button>
         <button class="chip" data-v="foundation-first">Foundation-first — understand the instrument before gender shaping (VAMethod lesson order)</button>
@@ -552,6 +564,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div class="modal-sub" style="margin-top:2px;font-size:11px;">The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages are language-independent.</div>
 
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience</h3>
+      <div class="field-help">So the app knows how much explaining to do. Nothing is assumed &mdash; "completely new" is a perfectly good answer.</div>
       <div class="chip-group" data-key="experience">
         <button class="chip" data-v="none">Completely new</button>
         <button class="chip" data-v="videos">Watched some videos</button>
@@ -559,7 +572,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="with-therapist">Worked / working with a therapist</button>
       </div>
 
-      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Timbre I'm aiming for</h3>
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Timbre I'm aiming for <span style="font-weight:400;color:var(--text2);">&mdash; what is this?</span></h3>
+      <div class="field-help"><b>Timbre</b> (say <i>TAM-ber</i>) is the <i>color</i> of your voice &mdash; the thing that makes two people on the same note sound like different people. It is not pitch (high/low) and not loudness. It comes mainly from <b>resonance</b>: how big the space in your throat and mouth is, and where the sound is focused. So "brighter" = smaller/more forward space; "softer" = less pressed, more relaxed texture. Pick whatever attracts you; the routine just leans its cues that way. Nothing here is a commitment.</div>
       <div class="chip-group" data-key="timbre">
         <button class="chip" data-v="brighter">Brighter</button>
         <button class="chip" data-v="softer">Softer</button>
@@ -569,6 +583,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       </div>
 
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Things I'd rather avoid</h3>
+      <div class="field-help">Common traps. Tick any that worry you and the routine will explicitly warn when an exercise tends to cause that &mdash; e.g. "don't chase high pitch" or "keep it non-nasal".</div>
       <div class="chip-group" data-key="avoid">
         <button class="chip" data-v="too-high">Sounding too high</button>
         <button class="chip" data-v="artificial">Sounding artificial</button>
@@ -578,6 +593,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       </div>
 
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Where I'll use it</h3>
+      <div class="field-help">Where your voice has to work in real life. This decides which contexts the practice prompts imitate (phone calls, home, friends, work).</div>
       <div class="chip-group" data-key="contexts">
         <button class="chip" data-v="home">Practicing at home</button>
         <button class="chip" data-v="phone">Phone / online calls</button>
@@ -609,6 +625,58 @@ body:has(#main.focus-mode) { overflow: hidden; }
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="learnOverlay" role="dialog" aria-modal="true" aria-labelledby="learnTitle">
+  <div class="modal" style="max-width:660px;">
+    <h2 id="learnTitle">Learn &amp; sources</h2>
+    <div class="modal-sub">What each part of your voice is, why the routine trains it, and where to read or watch more. Sources are the ones this routine was compiled from.</div>
+    <div class="learn-list">
+      <div class="learn-item">
+        <div class="t">The voice is three separate knobs, not one</div>
+        <div class="why">Height (<b>pitch</b>), space size (<b>resonance</b>), and texture (<b>how pressed or relaxed</b> the sound is). Feminine-sounding speech is mostly the second and third, with pitch only nudged a little. That's why this app treats "higher" as the least important target &mdash; chasing pitch alone is the most common beginner mistake.</div>
+        <div class="why">Watch: <a href="https://www.youtube.com/watch?v=Wzd9CGaADzE" target="_blank" rel="noopener">VAMethod &mdash; intro lesson (23 min)</a> &middot; Read: <a href="https://www.reddit.com/r/transvoice/wiki/feminization" target="_blank" rel="noopener">r/transvoice wiki &mdash; feminization guide</a></div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Resonance &mdash; the piece that actually changes the read</div>
+        <div class="why">Moving the <b>tongue root</b> changes the size of the space behind it, and the larynx follows automatically. Smaller space = brighter. <b>Never push the larynx down with your hand</b> &mdash; old forum advice, modern coaches advise against it.</div>
+        <div class="why">Watch: <a href="https://www.youtube.com/watch?v=8JbEEIfNse0" target="_blank" rel="noopener">VAMethod &mdash; larynx &amp; resonance</a> &middot; Read: <a href="https://transvoicelessons.com/" target="_blank" rel="noopener">TransVoiceLessons</a> (Zhea)</div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Strong / soft texture (some call it "vocal weight")</div>
+        <div class="why">Your voice balances between a powerful/strong texture and a light/soft one. Feminine speech usually wants a blend &mdash; not all-soft (breathy, weak) and not all-strong (pressed, heavy). We say <i>strong / soft</i> rather than "weight" because "adding weight" invites squeezing, which is how people hurt themselves.</div>
+        <div class="why">Watch: <a href="https://www.youtube.com/watch?v=6vHbi8F3xYg" target="_blank" rel="noopener">VAMethod &mdash; full lesson</a> &middot; Forum: <a href="https://www.reddit.com/r/transvoice/wiki/resources" target="_blank" rel="noopener">r/transvoice wiki resources</a></div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Prosody &mdash; melody, rhythm, and where you put stress</div>
+        <div class="why">The last 20% that makes a trained voice sound like a <i>person</i> instead of an exercise. It's also the most language-specific part &mdash; Turkish and English phrasing patterns differ, which is why this app keeps separate practice packs per language.</div>
+        <div class="why">Watch: <a href="https://www.youtube.com/@TransVoiceLessons" target="_blank" rel="noopener">TransVoiceLessons channel</a></div>
+      </div>
+      <div class="learn-item">
+        <div class="t">The two pathways this app offers</div>
+        <div class="why"><b>Practice-first</b> jumps straight to sentences and prosody, adding technique as needed &mdash; good if you mainly want to sound right on calls soon. <b>Foundation-first</b> trains each element alone (play, pitch control, tongue root, softness, brightness) and only then blends them &mdash; the VAMethod lesson order; slower, fewer entrenched habits.</div>
+        <div class="why">Read: <a href="https://www.reddit.com/r/transvoice/wiki/faq" target="_blank" rel="noopener">r/transvoice wiki &mdash; FAQ</a> (pitch vs resonance debates, common pitfalls)</div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Health beats streaks</div>
+        <div class="why">15&ndash;20 focused minutes daily beats an hour of strain. Pain, burning, or hoarseness means <b>stop</b>. This app has no streak counter on purpose &mdash; if it hurts, resting is the correct move, and the safety check-in will tell you so.</div>
+        <div class="why">Read: <a href="https://www.reddit.com/r/transvoice/wiki/index" target="_blank" rel="noopener">r/transvoice wiki index</a></div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Follow the primary sources</div>
+        <div class="why"><a href="https://www.instagram.com/vamethod_transvoice/" target="_blank" rel="noopener">@vamethod_transvoice on Instagram</a> (Jimmy Chen &mdash; the method this routine is compiled from) &middot; <a href="https://www.youtube.com/@vamethod_transvoice/videos" target="_blank" rel="noopener">VAMethod on YouTube</a> &middot; <a href="https://transvoicelessons.com/" target="_blank" rel="noopener">TransVoiceLessons</a> &middot; <a href="https://www.reddit.com/r/transvoice/" target="_blank" rel="noopener">r/transvoice</a></div>
+        <div class="why" style="opacity:0.75;">This app is an independent practice aid compiled from these sources. It is not affiliated with or endorsed by any of them.</div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Timbre (the word used in your profile)</div>
+        <div class="why"><b>Timbre</b> is the color of a voice &mdash; what makes two people on the same note sound different. Changeable parts: resonance size (bright&harr;dark), pressed/relaxed texture (strong&harr;soft), and a little pitch. When you pick "brighter" or "softer" in your profile, you're choosing which of those the routine emphasizes.</div>
+        <div class="why">Read: <a href="https://www.reddit.com/r/transvoice/wiki/resources" target="_blank" rel="noopener">r/transvoice wiki &mdash; terminology</a></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="learnCloseBtn" class="sm">Close</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // noravels fix: modal overlays were nested inside #main (display:none until a
 // session starts), so modals opened from the splash (onboarding, profile) were
@@ -4192,6 +4260,22 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && overlay.classList.contains('open')) { e.stopPropagation(); close(); }
   });
+})();
+
+
+// ── Learn & sources overlay (noravels fork) ─────────────────────────────
+(function initLearnUI() {
+  const ov = document.getElementById('learnOverlay');
+  if (!ov) return;
+  const open = () => ov.classList.add('open');
+  const close = () => ov.classList.remove('open');
+  const spl = document.getElementById('splashLearnBtn');
+  if (spl) spl.addEventListener('click', open);
+  const hdr = document.getElementById('learnBtn');
+  if (hdr) hdr.addEventListener('click', open);
+  document.getElementById('learnCloseBtn').addEventListener('click', close);
+  ov.addEventListener('click', e => { if (e.target === e.currentTarget) close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && ov.classList.contains('open')) close(); });
 })();
 
 // Onboarding gate: runs at splash, before user can start a session
