@@ -192,6 +192,17 @@ body:has(#main.focus-mode) { overflow: hidden; }
 .prog-table th { text-align: left; color: var(--text2); font-weight: 600; padding: 4px 8px; border-bottom: 1px solid var(--border); }
 .prog-table td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
 .prog-empty { color: var(--text2); font-size: 13px; padding: 8px 0; }
+
+/* Check-in stage (noravels fork) */
+.checkin-row { display: flex; align-items: center; gap: 12px; margin: 10px 0; }
+.checkin-row label { min-width: 160px; font-size: 14px; }
+.checkin-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+.checkin-row .ci-val { min-width: 24px; text-align: center; font-family: monospace; font-weight: 700; color: var(--accent); }
+.pain-row { margin: 12px 0; }
+.pain-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+.pain-toggle input { accent-color: var(--danger); }
+.pain-banner { background: rgba(248,81,73,0.12); border: 1px solid var(--danger); border-radius: 8px; padding: 12px 16px; margin: 10px 0; font-size: 14px; line-height: 1.5; }
+.pain-banner b { color: var(--danger); }
 .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; min-width: 320px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
 .modal h2 { font-size: 22px; margin-bottom: 8px; }
 .modal .modal-sub { color: var(--text2); font-size: 14px; margin-bottom: 18px; }
@@ -431,6 +442,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <div><div class="k">Day streak</div><div class="v" id="progStreak">0</div></div>
         <div><div class="k">Sessions recorded</div><div class="v" id="progTotal">0</div></div>
       </div>
+      <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">How practice has felt (last sessions)</h3>
+      <table class="prog-table"><thead><tr><th>Date</th><th>Comfort</th><th>Fatigue</th><th>Target</th><th>Pain</th></tr></thead><tbody id="progCheckin"></tbody></table>
       <div id="progTrend" style="margin:12px 0;"></div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Minutes per day (last 3 weeks)</h3>
       <div class="prog-bars" id="progBars"></div>
@@ -555,10 +568,8 @@ const ROUTINE = {
   description: "Daily 15\u201320 min routine: warm-up, resonance, volume, Turkish sentences, prosody, fluidity. Progress is tracked on this device.",
 
   stages: [
-    { id: 'checkin', name: '0. Check-in', short: 'Check-in', type: 'timed-hold', config: {
-      duration: 1,
-      instruction: 'Before starting: any throat pain, burning, or hoarseness? If yes, stop and rest \u2014 health beats streaks.',
-      note: null
+    { id: 'checkin', name: '0. Check-in', short: 'Check-in', type: 'checkin', config: {
+      instruction: 'Before starting: any throat pain, burning, or hoarseness? If yes, stop and rest \u2014 health beats streaks.'
     }},
     { id: 'warmup', name: '1. Warm-up', short: 'Warm-up', type: 'sustained-tone', config: {
       notes: ['F3','G3','A3'], duration: 10,
@@ -2175,6 +2186,54 @@ function renderFreeTalk(el, stage) {
   }
 }
 
+function renderCheckinStage(el, stage) {
+  engine.clearFeedback();
+  const sliders = [
+    { key: 'comfort', label: 'Comfort (0\u201310)', hint: 'How easy does your voice feel today?' },
+    { key: 'fatigue', label: 'Fatigue (0\u201310)', hint: 'How tired is your voice right now?' },
+    { key: 'alignment', label: 'Close to target (0\u201310)', hint: 'How close do you feel to your target voice?' },
+  ];
+  const stored = PROG.checkinScores();
+
+  el.innerHTML = `
+    <div class="stage-title">${stage.name}</div>
+    <div class="stage-desc">${stage.config.instruction}</div>
+    ${sliders.map(sl => `
+      <div class="checkin-row">
+        <label>${sl.label}</label>
+        <input type="range" min="0" max="10" value="${stored[sl.key] != null ? stored[sl.key] : 5}" id="ci-${sl.key}">
+        <span class="ci-val" id="civ-${sl.key}">${stored[sl.key] != null ? stored[sl.key] : 5}</span>
+      </div>
+    `).join('')}
+    <div class="pain-row">
+      <label class="pain-toggle"><input type="checkbox" id="ci-pain" ${stored.pain ? 'checked' : ''}> Throat pain / strain right now</label>
+    </div>
+    <div id="painBanner" class="pain-banner" style="display:none;">
+      <b>Pain flagged.</b> Health beats streaks \u2014 rest today. You can still explore the app, but practicing through pain is how habits get hurt.
+    </div>
+    <div class="controls controls-center">
+      <button id="ciContinue" class="primary">Continue</button>
+    </div>
+  `;
+  sliders.forEach(sl => {
+    const inp = document.getElementById('ci-' + sl.key);
+    const out = document.getElementById('civ-' + sl.key);
+    if (inp && out) inp.addEventListener('input', () => { out.textContent = inp.value; });
+  });
+  const painBox = document.getElementById('ci-pain');
+  const banner = document.getElementById('painBanner');
+  if (painBox && banner) {
+    painBox.addEventListener('change', () => { banner.style.display = painBox.checked ? 'block' : 'none'; });
+    banner.style.display = painBox.checked ? 'block' : 'none';
+  }
+  document.getElementById('ciContinue').onclick = () => {
+    const scores = { comfort: +document.getElementById('ci-comfort').value, fatigue: +document.getElementById('ci-fatigue').value, alignment: +document.getElementById('ci-alignment').value };
+    const pain = document.getElementById('ci-pain').checked;
+    PROG.setCheckin({ ...scores, painFlag: pain });
+    engine.complete();
+  };
+}
+
 function renderTimedHold(el, stage) {
   const cfg = stage.config;
   if (cfg.note) engine.setTarget(cfg.note);
@@ -2205,6 +2264,7 @@ function renderTimedHold(el, stage) {
 
 // ─── STAGE TYPE REGISTRY ────────────────────────────────────────────
 const STAGE_TYPES = {
+  'checkin': renderCheckinStage,
   'sustained-tone': renderSustainedTone,
   'repeat-on-note': renderRepeatOnNote,
   'glide': renderGlide,
@@ -2995,7 +3055,7 @@ const PROG = (() => {
   const ls = (() => { try { return window.localStorage; } catch (e) { return null; } })();
 
   const freshSession = () => ({ date: new Date().toISOString(), activeMs: 0, lastTick: null,
-    stageMs: {}, brightMs: 0, brightFrames: 0, completed: [], recordingsSaved: 0 });
+    stageMs: {}, brightMs: 0, brightFrames: 0, completed: [], recordingsSaved: 0, checkin: null });
 
   // current-session state (sessionStorage survives reloads within the tab)
   let cur = null;
@@ -3014,7 +3074,8 @@ const PROG = (() => {
     h.push({ date: cur.date, activeMs: cur.activeMs, stageMs: cur.stageMs,
              completed: [...cur.completed],
              brightness: cur.brightFrames > 0 ? cur.brightMs / cur.brightFrames : null,
-             recordingsSaved: cur.recordingsSaved });
+             recordingsSaved: cur.recordingsSaved,
+             checkin: cur.checkin || null });
     try { ls.setItem(LS_KEY, JSON.stringify(h.slice(-500))); } catch (e) {}
   }
   function dayKey(ts) { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -3044,6 +3105,8 @@ const PROG = (() => {
       if (voiced) { cur.brightMs += ratio; cur.brightFrames++; }
       dirty = true;
     },
+    setCheckin(scores) { cur.checkin = scores; dirty = true; },
+    checkinScores() { return cur.checkin || {}; },
     brightnessTrend() {
       const h = readHistory().filter(s => s.brightness != null).slice(-10);
       if (h.length < 2) return null;
@@ -3129,8 +3192,16 @@ function openProgressDashboard() {
     return `<tr><td>${d.toLocaleDateString()}</td><td>${mins} min</td><td>${s.completed.length}/${ROUTINE.stages.length}</td><td>${s.brightness != null ? s.brightness.toFixed(2) : '\u2014'}</td></tr>`;
   }).join('') || '<tr><td colspan="4" style="color:var(--text2)">No sessions recorded yet.</td></tr>';
 
+  const checkinRows = h.slice(-7).reverse().map(s => {
+    const d = new Date(s.date);
+    const ci = s.checkin;
+    if (!ci) return `<tr><td>${d.toLocaleDateString()}</td><td>\u2014</td><td>\u2014</td><td>\u2014</td><td>\u2014</td></tr>`;
+    return `<tr><td>${d.toLocaleDateString()}</td><td>${ci.comfort ?? '\u2014'}</td><td>${ci.fatigue ?? '\u2014'}</td><td>${ci.alignment ?? '\u2014'}</td><td>${ci.painFlag ? '<span style="color:var(--warning);">yes</span>' : 'no'}</td></tr>`;
+  }).join('') || '<tr><td colspan="5" style="color:var(--text2)">No check-ins yet.</td></tr>';
+
   document.getElementById('progStreak').textContent = streakN;
   document.getElementById('progTotal').textContent = h.length;
+  document.getElementById('progCheckin').innerHTML = checkinRows;
   document.getElementById('progTrend').innerHTML = trendHtml;
   document.getElementById('progBars').innerHTML = bars || '<div class="prog-empty">No data yet.</div>';
   document.getElementById('progStageTable').innerHTML = stageRows;
