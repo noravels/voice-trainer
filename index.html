@@ -217,6 +217,15 @@ body:has(#main.focus-mode) { overflow: hidden; }
 .help-q { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; min-width:16px; padding:0; margin-left:6px; border-radius:50%; border:1px solid var(--text2); background:transparent; color:var(--text2); font-size:11px; font-weight:700; line-height:1; cursor:pointer; vertical-align:middle; }
 .help-q:hover, .help-q[aria-expanded="true"] { border-color:var(--accent); color:var(--accent); }
 .help-q:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.plan-card { max-width:620px; text-align:left; border:1px solid var(--border,rgba(255,255,255,0.10)); border-radius:8px; padding:10px 12px; margin:12px 0; background:rgba(255,255,255,0.02); }
+.plan-card-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
+.plan-row { display:flex; gap:10px; font-size:12px; line-height:1.7; color:var(--text2); }
+.plan-row .k { min-width:130px; color:var(--text2); opacity:0.85; }
+.plan-row .v { color:var(--text); flex:1; }
+.plan-card-foot { font-size:11px; color:var(--text2); opacity:0.85; margin-top:8px; line-height:1.6; }
+.plan-notes { display:flex; flex-direction:column; gap:6px; margin:0 0 10px; }
+.plan-note { font-size:12px; line-height:1.55; color:var(--text2); border-left:2px solid var(--accent); padding-left:10px; max-width:620px; }
+.plan-note b { color:var(--text); }
 .field-help { font-size:12px; line-height:1.6; color:var(--text2); max-width:560px; margin:6px 0 6px; padding-left:10px; border-left:2px solid var(--accent); }
 .field-help b { color:var(--text); }
 .learn-list { max-width:600px; text-align:left; }
@@ -368,6 +377,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div id="pauseBadge" role="button" tabindex="0" aria-label="Paused — click to resume" title="Click or press Space to resume" style="display:none;background:var(--warning);color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;">PAUSED</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <button id="planBtn" class="sm" title="Your target and how the routine adapts to your answers">My plan</button>
       <button id="learnBtn" class="sm" title="What each part of the voice is, why we train it, and source links">Learn</button>
       <button id="progBtn" class="sm" title="Practice history and trends (stored on this device)">Progress</button>
       <button id="pauseToggleBtn" class="sm" title="Pause/resume the graph (Space)" aria-label="Pause or resume the graph">Pause</button>
@@ -669,7 +679,19 @@ body:has(#main.focus-mode) { overflow: hidden; }
     </div>
   </div>
 </div>
-<div class="modal-overlay" id="learnOverlay" role="dialog" aria-modal="true" aria-labelledby="learnTitle">
+<div class="modal-overlay" id="planOverlay" role="dialog" aria-modal="true" aria-labelledby="planTitle">
+  <div class="modal" style="max-width:640px;">
+    <h2 id="planTitle">My plan</h2>
+    <div class="modal-sub">What the app is aiming at for you right now, and how each stage uses it. Everything here comes from your profile and can be changed at any time.</div>
+    <div id="planBody" style="text-align:left;"></div>
+    <div class="modal-actions">
+      <button id="planEditBtn" class="sm">Edit profile</button>
+      <button id="planCloseBtn" class="sm primary">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="learnOverlay"  role="dialog" aria-modal="true" aria-labelledby="learnTitle">
   <div class="modal" style="max-width:660px;">
     <h2 id="learnTitle">Learn &amp; sources</h2>
     <div class="modal-sub">What each part of your voice is, why the routine trains it, and where to read or watch more. Sources are the ones this routine was compiled from.</div>
@@ -1160,9 +1182,79 @@ const ROUTINE_FOUNDATION = {
 // noravels fork: swap the active routine between practice-first and
 // foundation-first paths. ROUTINE is a var pointing at one of the variants;
 // applyRoutinePath re-points it (and data arrays) so all references update.
+
+// ── Onboarding answers → actual targets (noravels fork) ──────────────
+// Before this, only "route" and "language" changed anything. Every other answer
+// was stored and shown but did not move a single target. This turns them into
+// concrete changes: the working range, which stage gets emphasised, what the
+// volume stage may ask of you, which contexts the speaking prompts use, and how
+// much explanation a beginner gets.
+function computePersonalPlan() {
+  const p = PROG.readProfile() || {};
+  const arr = k => Array.isArray(p[k]) ? p[k] : (p[k] ? [p[k]] : []);
+  const goal = arr('goal'), timbre = arr('timbre'), avoid = arr('avoid'),
+        contexts = arr('contexts'), exp = arr('experience');
+
+  // Working range. Feminine-forward work keeps the routine in F3–A#3; a wider
+  // androgynous goal opens the bottom; "avoid sounding too high" pulls the
+  // ceiling down so the app cannot nudge you upward.
+  let low = 'F3', high = 'A#3';
+  if (goal.includes('androgynous')) { low = 'E3'; high = 'A#3'; }
+  if (goal.includes('softer') || timbre.includes('softer') || timbre.includes('lighter')) { low = 'F3'; high = 'F#3'; }
+  if (avoid.includes('too-high')) { high = 'G3'; }
+  if (avoid.includes('strain')) { high = high === 'G3' ? 'F#3' : 'G3'; }
+
+  // Volume stage: only push loudness when nothing argues against strain.
+  const volumeLoud = !(avoid.includes('strain') || timbre.includes('softer') || timbre.includes('lighter'));
+  // Beginner (or "watched some videos") gets the per-stage plain-language help.
+  const explainLevel = (exp.length === 0 || exp.includes('none') || exp.includes('videos')) ? 'full' : 'lean';
+  // Context-flavoured opening line for the speaking stages.
+  const ctxPrompts = [];
+  if (contexts.includes('phone')) ctxPrompts.push('Phone call: say hello and explain why you are calling (30\\u201360 s).');
+  if (contexts.includes('work')) ctxPrompts.push('Work / school: answer a question out loud as if the room were listening.');
+  if (contexts.includes('friends') || contexts.includes('daily')) ctxPrompts.push('Everyday: order something at a counter, then thank the person.');
+  if (contexts.includes('home')) ctxPrompts.push('Home: talk to yourself about what you did today while you tidy up.');
+
+  return {
+    zone: { low, high },
+    volumeLoud,
+    volumeNote: volumeLoud ? '' : 'Your answers say volume work should stay gentle today \\u2014 keep everything at a comfortable speaking level. Loudness is not the goal here; ease is.',
+    explainLevel,
+    ctxPrompts,
+    emphasise: {
+      resonance: timbre.includes('brighter') || timbre.includes('forward') || goal.includes('more-feminine'),
+      softness: timbre.includes('softer') || timbre.includes('lighter') || goal.includes('softer'),
+      prosody: goal.includes('phone-comfort') || contexts.length > 0,
+    },
+  };
+}
+window.__computePersonalPlan = computePersonalPlan;
+
+// Rewrite the active routine's configs to match the plan. Runs on boot and after
+// every profile save, so the printed targets and the live targets agree.
+function applyProfileToRoutine() {
+  if (typeof PROG === 'undefined' || !PROG.readProfile) return;
+  const plan = computePersonalPlan();
+  ROUTINE.stages.forEach(st => {
+    if (!st.config) return;
+    // zones
+    if (st.config.zone) st.config.zone = { low: plan.zone.low, high: plan.zone.high };
+    // volume stage restraint
+    if (st.id === 'volume' || st.id === 'soft' || st.id === 'texture') {
+      if (st.id === 'volume' && !plan.volumeLoud) {
+        st.config.reps = 1;
+        st.config.instruction = 'Count 1\\u20133 at a comfortable level, same pitch, same ease. ' + plan.volumeNote;
+      }
+    }
+  });
+  window.__activePlan = plan;
+}
+window.__applyProfileToRoutine = applyProfileToRoutine;
+
 let ROUTINE = ROUTINE_PRACTICE;
 window.__applyRoutinePath = function(pathId) {
   ROUTINE = pathId === 'foundation-first' ? ROUTINE_FOUNDATION : ROUTINE_PRACTICE;
+  if (window.__applyProfileToRoutine) window.__applyProfileToRoutine();
   try {
     document.getElementById('splashTitle').textContent = ROUTINE.name;
     document.getElementById('splashDesc').textContent = ROUTINE.description;
@@ -2888,19 +2980,33 @@ function renderFreeTalk(el, stage) {
 function renderCheckinStage(el, stage) {
   engine.clearFeedback();
   const sliders = [
-    { key: 'comfort', label: 'Comfort (0\u201310)', hint: 'How easy does your voice feel today?' },
-    { key: 'fatigue', label: 'Fatigue (0\u201310)', hint: 'How tired is your voice right now?' },
-    { key: 'alignment', label: 'Close to target (0\u201310)', hint: 'How close do you feel to your target voice?' },
-    { key: 'effort', label: 'Effort going higher (0\u201310)', hint: 'On higher pitches: tight, harsh, crackly, or labored? (10 = very strained)' },
+    { key: 'comfort', label: 'Comfort (0\u201310)', hint: 'How easy does your voice feel today? 10 = effortless, 0 = every sound is work.' },
+    { key: 'fatigue', label: 'Fatigue (0\u201310)', hint: 'How tired is your voice right now? 10 = already worn out from talking.' },
+    { key: 'alignment', label: 'Close to target (0\u201310)', hint: 'How close do you feel to the voice you are aiming for? Gut feeling, not a measurement \u2014 it is only ever compared to your own past answers.' },
+    { key: 'effort', label: 'Effort going higher (0\u201310)', hint: 'On higher notes: tight, harsh, crackly or laboured? 10 = very strained. This is the one to keep low.' },
   ];
   const stored = PROG.checkinScores();
 
   el.innerHTML = `
     <div class="stage-title">${stage.name}</div>
-    <div class="stage-desc">${stage.config.instruction}</div>
+
+    <div class="stage-desc"><b>What you do here:</b> 30 seconds of honest self-report before any sound. Move the four sliders, tick the pain box only if it is true, and press Continue. Nothing is scored \u2014 the answers are saved next to your recordings so you can see how your voice felt on the days it sounded best.</div>
+
+    <div style="max-width:620px;text-align:left;margin:10px 0 4px;">
+      <details class="device-setup" style="max-width:620px;">
+        <summary>What each slider means (and what the app does with it)</summary>
+        <div style="font-size:12px;color:var(--text2);line-height:1.7;padding:6px 2px;">
+          ${sliders.map(sl => `<div><b style="color:var(--text);">${sl.label}</b> &mdash; ${sl.hint}</div>`).join('')}
+          <div style="margin-top:6px;">Only two of these change what happens next: <b>high fatigue</b> (7+) or <b>low comfort</b> (3 or under) makes every later stage show a "keep it light" note, and the <b>pain flag</b> tells you to skip the load-bearing stages outright. The rest is a diary you can look back on in Progress.</div>
+        </div>
+      </details>
+    </div>
+
+    ${planCardHTML()}
+
     ${sliders.map(sl => `
       <div class="checkin-row">
-        <label>${sl.label}</label>
+        <label title="${sl.hint}">${sl.label}</label>
         <input type="range" min="0" max="10" value="${stored[sl.key] != null ? stored[sl.key] : 5}" id="ci-${sl.key}">
         <span class="ci-val" id="civ-${sl.key}">${stored[sl.key] != null ? stored[sl.key] : 5}</span>
       </div>
@@ -2911,21 +3017,41 @@ function renderCheckinStage(el, stage) {
     <div id="painBanner" class="pain-banner" style="display:none;">
       <b>Pain flagged.</b> Health beats streaks \u2014 rest today. You can still explore the app, but practicing through pain is how habits get hurt.
     </div>
+    <div id="ciVerdict" class="plan-note" style="display:none;margin:8px 0;"></div>
     <div class="controls controls-center">
       <button id="ciContinue" class="primary">Continue</button>
     </div>
   `;
+  const verdict = (scores) => {
+    const out = document.getElementById('ciVerdict');
+    if (!out) return;
+    const msgs = [];
+    if (scores.painFlag) msgs.push('<b>Stop after this:</b> pain flagged \u2014 skip Volume and Blend today and keep the rest gentle.');
+    else if (scores.fatigue >= 7 || scores.comfort <= 3) msgs.push('<b>Today is a light day:</b> keep volume down, shorten the reading stages, and stop before it feels like work.');
+    else if (scores.effort >= 7) msgs.push('<b>Watch the effort:</b> high strain on higher notes means drop the pitch work today and stay on resonance instead.');
+    else msgs.push('<b>Green light:</b> normal session \u2014 run the routine as it comes.');
+    out.innerHTML = msgs.join(' ');
+    out.style.display = '';
+    out.style.borderLeftColor = (scores.painFlag || scores.fatigue >= 7 || scores.comfort <= 3 || scores.effort >= 7) ? 'var(--warning)' : 'var(--success)';
+  };
   sliders.forEach(sl => {
     const inp = document.getElementById('ci-' + sl.key);
     const out = document.getElementById('civ-' + sl.key);
-    if (inp && out) inp.addEventListener('input', () => { out.textContent = inp.value; });
+    if (inp && out) inp.addEventListener('input', () => {
+      out.textContent = inp.value;
+      verdict({ comfort: +document.getElementById('ci-comfort').value, fatigue: +document.getElementById('ci-fatigue').value, alignment: +document.getElementById('ci-alignment').value, effort: +document.getElementById('ci-effort').value, painFlag: document.getElementById('ci-pain').checked });
+    });
   });
   const painBox = document.getElementById('ci-pain');
   const banner = document.getElementById('painBanner');
   if (painBox && banner) {
-    painBox.addEventListener('change', () => { banner.style.display = painBox.checked ? 'block' : 'none'; });
+    painBox.addEventListener('change', () => {
+      banner.style.display = painBox.checked ? 'block' : 'none';
+      verdict({ comfort: +document.getElementById('ci-comfort').value, fatigue: +document.getElementById('ci-fatigue').value, alignment: +document.getElementById('ci-alignment').value, effort: +document.getElementById('ci-effort').value, painFlag: painBox.checked });
+    });
     banner.style.display = painBox.checked ? 'block' : 'none';
   }
+  verdict({ comfort: stored.comfort != null ? stored.comfort : 5, fatigue: stored.fatigue != null ? stored.fatigue : 5, alignment: stored.alignment != null ? stored.alignment : 5, effort: stored.effort != null ? stored.effort : 5, painFlag: !!stored.pain });
   document.getElementById('ciContinue').onclick = () => {
     const scores = { comfort: +document.getElementById('ci-comfort').value, fatigue: +document.getElementById('ci-fatigue').value, alignment: +document.getElementById('ci-alignment').value, effort: +document.getElementById('ci-effort').value };
     const pain = document.getElementById('ci-pain').checked;
@@ -3031,6 +3157,116 @@ function completeStage() {
   else renderStageNav();
 }
 
+
+// ── Profile → routine plumbing (noravels fork) ───────────────────────
+// The profile used to only pick a path and a language. These helpers turn the
+// other answers (timbre aim, avoid list, goal, contexts, fatigue) into concrete
+// guidance shown on the relevant stages, so the choices visibly do something.
+function profileArr(key) {
+  const p = PROG.readProfile() || {};
+  return Array.isArray(p[key]) ? p[key] : (p[key] ? [p[key]] : []);
+}
+
+// Shared "your target" summary rows — used by the check-in stage and the My plan modal
+const PLAN_LABELS = {
+  goal: { 'more-feminine': 'more feminine', 'androgynous': 'more androgynous', 'softer': 'softer overall', 'phone-comfort': 'comfort on phone/online calls', 'explore': 'still exploring' },
+  path: { 'practice-first': 'Practice-first \u2014 real speech from day one', 'foundation-first': 'Foundation-first \u2014 each element alone, then combined' },
+  timbre: { brighter: 'brighter', softer: 'softer', lighter: 'lighter weight', forward: 'more forward', natural: 'natural' },
+  avoid: { 'too-high': 'sounding too high', artificial: 'sounding artificial', nasal: 'sounding nasal', strain: 'straining your voice', theatrical: 'sounding theatrical' },
+  contexts: { home: 'at home', phone: 'phone / online calls', friends: 'friends & family', daily: 'daily life', work: 'work / school' },
+};
+function planSummaryRows() {
+  const p = PROG.readProfile() || {};
+  const arr = k => Array.isArray(p[k]) ? p[k] : (p[k] ? [p[k]] : []);
+  const map = (key) => arr(key).map(v => (PLAN_LABELS[key] || {})[v] || v);
+  const langs = (arr('practiceLanguages').length ? arr('practiceLanguages') : ['tr'])
+    .map(l => (LANGUAGE_PACKS[l] || {}).label || l).join(' + ');
+  const stageList = ROUTINE.stages.filter(s => s.type !== 'checkin').map(s => s.short).join(' \u2192 ');
+  const zoneStage = ROUTINE.stages.find(s => s.config && s.config.zone);
+  const zone = zoneStage ? zoneStage.config.zone : null;
+  const zoneTxt = zone ? `${zone.low}\u2013${zone.high}` : 'F3\u2013A#3';
+  return [
+    ['Goal', map('goal').join(', ') || 'not set'],
+    ['Route', map('path').join(', ') || 'Practice-first (default)'],
+    ['Practice language', langs],
+    ['Timbre aim', map('timbre').join(', ') || 'not set'],
+    ['Avoiding', map('avoid').join(', ') || 'nothing specific'],
+    ['Will use it', map('contexts').join(', ') || 'not set'],
+    ['Your working range', zoneTxt + ' \u2014 the whole routine keeps you here on purpose'],
+    ['Today\u2019s session', stageList + ' (about 15\u201320 min)'],
+  ];
+}
+function planCardHTML() {
+  const plan = window.__activePlan || (window.__computePersonalPlan ? window.__computePersonalPlan() : null);
+  let changes = '';
+  if (plan) {
+    const rows = [
+      ['Working range set to', plan.zone.low + '\u2013' + plan.zone.high + (plan.zone.high === 'A#3' && plan.zone.low === 'F3' ? ' (the routine default)' : ' \u2014 derived from your goal, timbre aim and avoid list')],
+      ['Volume stage', plan.volumeLoud ? 'normal: you can practise projection' : 'kept gentle because you asked to avoid strain / wanted a softer sound'],
+      ['Speaking prompts', plan.ctxPrompts.length ? 'targeted at your chosen contexts (' + plan.ctxPrompts.length + ' extra context prompts)' : 'generic, because no contexts were chosen'],
+      ['Explanations', plan.explainLevel === 'full' ? 'on \u2014 every stage carries a plain-language "new to this?" line' : 'off \u2014 lean mode for experienced practice'],
+    ];
+    changes = '<div class="plan-card" style="margin-top:10px;"><div class="plan-card-title">What your answers actually changed</div>' +
+      rows.map(([k, v]) => `<div class="plan-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('') +
+      '<div class="plan-card-foot">These are live: change an answer and the stages change with it.</div></div>';
+  }
+  return '<div class="plan-card"><div class="plan-card-title">Your target \u2014 from the profile you filled in</div>' +
+    planSummaryRows().map(([k, v]) => `<div class="plan-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('') +
+    '<div class="plan-card-foot">Change any of this from <b>Voice profile &amp; goals</b> on the splash screen, or from Progress \u2192 Edit profile. Every stage re-reads these answers.</div></div>' + changes;
+}
+
+function planNotesFor(stage) {
+  const notes = [];
+  const timbre = profileArr('timbre'), avoid = profileArr('avoid'),
+        goal = profileArr('goal'), contexts = profileArr('contexts');
+  const id = stage.id;
+  // Fatigue-aware advisory from today's check-in
+  const ci = PROG.checkinScores() || {};
+  if (ci.fatigue >= 7 || ci.comfort <= 3) {
+    if (['volume', 'blend', 'sentences', 'prosody', 'fluid'].includes(id)) {
+      notes.push(['gentle', 'Today\u2019s check-in says your voice is tired. Keep this stage light: lower volume, shorter sentences, stop before it feels like work.']);
+    }
+  }
+  if (ci.painFlag) {
+    notes.push(['stop', 'You flagged pain. Do not practise through it \u2014 skip the load-bearing stages (volume, blend) and rest.']);
+  }
+  if (avoid.includes('too-high') && ['resonance', 'blend', 'volume', 'sentences', 'prosody'].includes(id)) {
+    notes.push(['avoid', 'You asked to avoid sounding too high \u2014 stay inside the zone; do not chase pitch. Brightness comes from space, not from height.']);
+  }
+  if (avoid.includes('nasal') && ['resonance', 'sentences', 'prosody'].includes(id)) {
+    notes.push(['avoid', 'Nasality watch: keep the wide, yawny space. If it sounds pinched, make the cavity bigger rather than pushing.']);
+  }
+  if (avoid.includes('strain') && ['blend', 'volume', 'setup', 'combine'].includes(id)) {
+    notes.push(['avoid', 'You asked to avoid strain \u2014 if effort climbs, drop the volume and restart the breath. Cracking is fine; squeezing is not.']);
+  }
+  if (avoid.includes('artificial') && ['prosody', 'fluid', 'read'].includes(id)) {
+    notes.push(['avoid', 'You want to avoid sounding artificial \u2014 keep prosody smaller than feels impressive. Real speech, not a performance.']);
+  }
+  if (timbre.includes('brighter') && ['resonance', 'bright', 'sentences'].includes(id)) {
+    notes.push(['aim', 'Your timbre aim is brighter: smaller cavity, tongue root up and forward.']);
+  }
+  if ((timbre.includes('softer') || timbre.includes('lighter')) && ['soft', 'blend', 'texture'].includes(id)) {
+    notes.push(['aim', 'Your timbre aim is softer / lighter: relax the press, let the sound stay easy.']);
+  }
+  if (timbre.includes('forward') && ['resonance', 'bright', 'prosody'].includes(id)) {
+    notes.push(['aim', 'Your timbre aim is more forward: feel the sound in the front of the mouth, not the throat.']);
+  }
+  if (goal.includes('phone-comfort') && ['sentences', 'prosody', 'fluid', 'read'].includes(id)) {
+    notes.push(['aim', 'Your goal is comfort on calls \u2014 imagine you are actually on the phone while you do this.']);
+  }
+  if (contexts.length && ['prosody', 'fluid'].includes(id)) {
+    notes.push(['aim', 'Practice contexts you picked: ' + contexts.map(c => ({ home: 'home', phone: 'phone calls', friends: 'friends & family', daily: 'daily life', work: 'work / school' }[c] || c)).join(', ') + '. Aim the delivery at those.']);
+  }
+  return notes;
+}
+function planNotesHTML(stage) {
+  const notes = planNotesFor(stage);
+  if (!notes.length) return '';
+  const color = { stop: 'var(--warning)', gentle: 'var(--warning)', avoid: 'var(--accent)', aim: 'var(--success)' };
+  return '<div class="plan-notes">' + notes.map(([kind, text]) =>
+    `<div class="plan-note" style="border-left-color:${color[kind] || 'var(--accent)'}">${text}</div>`).join('') + '</div>';
+}
+
 function renderCurrentStage() {
   const el = document.getElementById('stageContent');
   const stage = ROUTINE.stages[currentStage];
@@ -3040,6 +3276,22 @@ function renderCurrentStage() {
     const renderer = STAGE_TYPES[stage.type];
     if (renderer) renderer(el, stage);
     else el.innerHTML = `<div class="stage-title">${stage.name}</div><div class="stage-desc">Unknown stage type: ${stage.type}</div>`;
+    // profile-driven guidance for this stage (timbre aim, avoid list, today's check-in)
+    const notes = planNotesHTML(stage);
+    if (notes) el.insertAdjacentHTML('afterbegin', notes);
+    // beginner-only plain instruction, and context-flavoured prompts
+    if (window.__stageTip) {
+      const tip = window.__stageTip(stage.type);
+      if (tip) {
+        const desc = el.querySelector('.stage-desc');
+        if (desc) desc.insertAdjacentHTML('afterend', tip);
+      }
+    }
+    const plan = window.__activePlan;
+    if (plan && plan.ctxPrompts && plan.ctxPrompts.length && ['free-talk', 'read-aloud'].includes(stage.type)) {
+      const box = el.querySelector('.stage-desc');
+      if (box) box.insertAdjacentHTML('afterend', '<div class="plan-note" style="border-left-color:var(--success);margin-bottom:8px;"><b>Context for today:</b> ' + plan.ctxPrompts.join(' ') + '</div>');
+    }
   }
 }
 
@@ -4280,6 +4532,8 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     // Path select swaps the active routine (practice-first = default; foundation-first = instrument-study order)
     if (sel.path && sel.path.length) {
       window.__applyRoutinePath(sel.path[0]);
+    } else if (window.__applyProfileToRoutine) {
+      window.__applyProfileToRoutine();
     }
     const wasIntro = document.getElementById('profSaveBtn').textContent.indexOf('start') >= 0;
     close();
@@ -4378,11 +4632,57 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
   const close = () => ov.classList.remove('open');
   const spl = document.getElementById('splashLearnBtn');
   if (spl) spl.addEventListener('click', open);
+  // My plan overlay reuses the same summary the check-in stage shows
+  (function initPlanUI() {
+    const pov = document.getElementById('planOverlay');
+    if (!pov) return;
+    const render = () => {
+      const rows = typeof planSummaryRows === 'function' ? planSummaryRows() : [];
+      document.getElementById('planBody').innerHTML = planCardHTML() +
+        '<div class="modal-sub" style="margin-top:10px;">Stages shown above are for your current route. Warnings and timbre prompts appear inside the stages themselves when they matter.</div>';
+    };
+    const popen = () => { render(); pov.classList.add('open'); };
+    const pclose = () => pov.classList.remove('open');
+    const pb = document.getElementById('planBtn');
+    if (pb) pb.addEventListener('click', popen);
+    document.getElementById('planCloseBtn').addEventListener('click', pclose);
+    document.getElementById('planEditBtn').addEventListener('click', () => {
+      pclose();
+      if (typeof window.__openVoiceProfile === 'function') window.__openVoiceProfile(PROG.readProfile(), false);
+    });
+    pov.addEventListener('click', e => { if (e.target === e.currentTarget) pclose(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && pov.classList.contains('open')) pclose(); });
+    window.__openPlan = popen;
+  })();
   const hdr = document.getElementById('learnBtn');
   if (hdr) hdr.addEventListener('click', open);
   document.getElementById('learnCloseBtn').addEventListener('click', close);
   ov.addEventListener('click', e => { if (e.target === e.currentTarget) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ov.classList.contains('open')) close(); });
+})();
+
+// Personalisation: apply profile-derived targets before any session starts
+if (window.__applyProfileToRoutine) window.__applyProfileToRoutine();
+
+// A beginner gets a plain-language "what to do here" line on every stage;
+// experienced users don't. Injected into the active language pack at boot.
+(function stageHelpInjection() {
+  const TIPS = {
+    'sustained-tone': 'Hold the note on a comfortable "ah" and let it fade out. If your voice shakes, that is normal at first.',
+    'repeat-on-note': 'Say the displayed words on the given note, one at a time. The tone you hear is the height to copy \u2014 not a volume to match.',
+    'glide': 'Slide your voice smoothly up and back down on one breath. Cracks are information, not failure.',
+    'read-aloud': 'Read the sentence aloud in your target voice, using the setup before you start. Do not worry about speed.',
+    'resonance': 'Same vowel, different space. Move the inside of your mouth, not your jaw or lips.',
+    'free-talk': 'Speak freely from the prompt for the full time. Say something real; the words do not have to be good.',
+    'timed-hold': 'Keep going gently until the timer runs out. Stop early if anything hurts.',
+  };
+  window.__stageTip = (type) => {
+    const plan = window.__activePlan;
+    if (!plan || plan.explainLevel !== 'full') return '';
+    const t = TIPS[type];
+    if (!t) return '';
+    return '<div class="plan-note" style="border-left-color:var(--accent);margin-bottom:8px;"><b>New to this?</b> ' + t + '</div>';
+  };
 })();
 
 // Onboarding gate: runs at splash, before user can start a session
