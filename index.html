@@ -609,6 +609,18 @@ body:has(#main.focus-mode) { overflow: hidden; }
     </div>
   </div>
 </div>
+<script>
+// noravels fix: modal overlays were nested inside #main (display:none until a
+// session starts), so modals opened from the splash (onboarding, profile) were
+// invisible. Relocate all overlays to body level at parse time.
+(function () {
+  var ids = ['sessionSummaryOverlay', 'progressOverlay', 'progressConfirmOverlay', 'profileOverlay', 'dataOverlay'];
+  ids.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el && el.parentElement && el.parentElement.id === 'main') document.body.appendChild(el);
+  });
+})();
+</script>
 <!-- __ROUTINE_START__ -->
 <script>
 // noravels fork: fem / fem+fluid routine (VAMethod-informed), Turkish reading material.
