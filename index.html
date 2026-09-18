@@ -3271,6 +3271,13 @@ const PROG = (() => {
   function saveHistory() {
     if (!ls) return;
     const h = readHistory();
+    // Schema note: this flat session list mirrors spec's VoicePracticeSession
+    // (startedAt/endedAt via date+activeMs, exerciseIds via completed,
+    // session scores via checkin, brightness as a measurement summary).
+    // Recordings live in IndexedDB ('vt-recordings') with {stage, week, date}
+    // meta — i.e. the spec's VoiceRecording minus KMP-specific URIs.
+    // The user's voice profile (voice training goals, experience level, etc.)
+    // lives separately under 'vt_profile_v1' — the spec's VoiceTrainingProfile.
     h.push({ date: cur.date, activeMs: cur.activeMs, stageMs: cur.stageMs,
              completed: [...cur.completed],
              brightness: cur.brightFrames > 0 ? cur.brightMs / cur.brightFrames : null,
@@ -3673,6 +3680,6 @@ document.addEventListener('keydown', e => {
   if (po.classList.contains('open')) { po.classList.remove('open'); return; }
 });
 </script>
-<div class="app-footer">v1.5.0 (noravels fem-fluid fork) &middot; routine informed by <a href="https://www.instagram.com/vamethod_transvoice/">VAMethod</a> &middot; &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
+<div class="app-footer">v1.6.0 (noravels fem-fluid fork) &middot; routine informed by <a href="https://www.instagram.com/vamethod_transvoice/">VAMethod</a> &middot; &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
 </body>
 </html>
