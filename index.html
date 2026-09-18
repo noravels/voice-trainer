@@ -393,6 +393,10 @@ body:has(#main.focus-mode) { overflow: hidden; }
     <div class="pitch-top">
       <div class="note-display">
         <div class="note-name" id="noteName">--</div>
+        <div style="margin-left:10px;font-size:11px;color:var(--text2);line-height:1.4;" title="H1–H2 is the level difference between the first two harmonics: positive = breathier/softer, negative = pressed/effortful. Reported range for normal speakers is roughly +2 to +19 dB (Kreiman et al. 2007). Shown as a live readout, never as a pass/fail score.">
+          <div>softness (H1–H2): <span id="softMeterVal" style="font-weight:700;color:var(--accent);">--</span></div>
+          <div id="softMeterHint" style="opacity:0.8;">sing a steady note to read it</div>
+        </div>
         <div>
           <div class="note-cents" id="noteCents">&nbsp;</div>
           <div class="note-freq" id="noteFreq">&nbsp;</div>
@@ -402,7 +406,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div class="target-display" style="position:relative;">
         <div class="target-label">Target <span style="font-size:10px;opacity:0.6;">(click to edit)</span></div>
         <div class="target-note-row">
-          <div class="target-note" id="targetNote" role="button" tabindex="0" aria-label="Edit target note" aria-haspopup="true" aria-expanded="false">--</div>
+          <div class="target-note" id="targetNote" role="button" tabindex="0" aria-label="Edit target note" aria-haspopup="true" aria-expanded="false">F#3–A#3 (185–233 Hz)</div>
           <button class="target-ref-btn" id="targetRefBtn" title="Hold to play reference tone" aria-label="Hold to play reference tone for the target note" style="display:none;">&#9834;</button>
         </div>
         <div class="vol-control">
@@ -508,6 +512,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">How practice has felt (last sessions)</h3>
       <table class="prog-table"><thead><tr><th>Date</th><th>Comfort</th><th>Fatigue</th><th>Target</th><th>Effort</th><th>Pain</th></tr></thead><tbody id="progCheckin"></tbody></table>
       <div id="progTrend" style="margin:12px 0;"></div>
+      <div id="progSoftness" style="margin:12px 0;"></div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Minutes per day (last 3 weeks)</h3>
       <div class="prog-bars" id="progBars"></div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">This session by stage</h3>
@@ -730,6 +735,14 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <div class="t">Follow the primary sources</div>
         <div class="why"><a href="https://www.instagram.com/vamethod_transvoice/" target="_blank" rel="noopener">@vamethod_transvoice on Instagram</a> (Jimmy Chen &mdash; the method this routine is compiled from) &middot; <a href="https://www.youtube.com/@vamethod_transvoice/videos" target="_blank" rel="noopener">VAMethod on YouTube</a> &middot; <a href="https://transvoicelessons.com/" target="_blank" rel="noopener">TransVoiceLessons</a> &middot; <a href="https://www.reddit.com/r/transvoice/" target="_blank" rel="noopener">r/transvoice</a></div>
         <div class="why" style="opacity:0.75;">This app is an independent practice aid compiled from these sources. It is not affiliated with or endorsed by any of them.</div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Targets in numbers &mdash; what the bands actually mean</div>
+        <div class="why"><b>Pitch.</b> Feminine-typical speech sits around <b>180&ndash;220 Hz</b>; the ambiguous middle is roughly <b>140&ndash;180 Hz</b>; masculine-typical is ~100&ndash;140 Hz. Pitch is the single most visible marker but explains only about <b>42%</b> of how a voice is read (meta-analysis of 38 studies), so this app treats it as a guard rail: you practise <i>inside</i> a band, you don't chase a number.</div>
+        <div class="why"><b>Resonance.</b> The reason resonance matters: formant frequencies run roughly <b>20% higher</b> in cis women than cis men, and that is behavioural as well as anatomical &mdash; it moves with vocal-tract shape (larynx height, tongue root), which is exactly what the resonance stage trains. Therapy studies show measurable formant shifts from training.</div>
+        <div class="why"><b>Brightness.</b> Perceived brightness lives in the broad <b>2&ndash;4 kHz</b> region and is quantified as spectral centroid or "frequency of half energy". Reference points from professional voices: approx <b>2.4 kHz</b> in basses up to <b>3.1 kHz</b> in sopranos &mdash; higher = brighter. Brightness here is only ever shown as your own trend.</div>
+        <div class="why"><b>Softness.</b> Softness is a phonation setting, not a pitch. It is measured as <b>H1&ndash;H2</b> (level difference between the first two harmonics): positive = breathier/softer, negative = pressed/strained. Reported range for normal speakers: about <b>+2 to +19 dB</b>; breathy vs modal differ by only ~4 dB and listeners notice ~2&ndash;4 dB. The app now shows your live H1&ndash;H2 while you hold a note.</div>
+        <div class="why">Sources: UCSF Gender Affirming Health Program; Leung, Oates &amp; Chan 2018 (JSLHR); Schwarz et al. / Södersten et al. summarised in a 2020 feminisation review (PMC7024865); timbre parameters study (PMC9605961); H1&ndash;H2 perception study (PMC2997695, after Kreiman et al. 2007). Full numbers and links: <code>voice_training/targets-and-acoustics.md</code> in the project.</div>
       </div>
       <div class="learn-item">
         <div class="t">Timbre (the word used in your profile)</div>
@@ -1189,6 +1202,24 @@ const ROUTINE_FOUNDATION = {
 // concrete changes: the working range, which stage gets emphasised, what the
 // volume stage may ask of you, which contexts the speaking prompts use, and how
 // much explanation a beginner gets.
+
+// Note-name → Hz (A4 = 440, equal temperament) so targets can be shown in the
+// units the literature uses (Hz bands) next to the note names musicians expect.
+const NOTE_HZ_MAP = (() => {
+  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const m = {};
+  for (let oct = 1; oct <= 7; oct++) names.forEach((n, i) => {
+    const midi = 12 * (oct + 1) + i;
+    m[n + oct] = 440 * Math.pow(2, (midi - 69) / 12);
+  });
+  return m;
+})();
+function hzOf(note) { const v = NOTE_HZ_MAP[note]; return v ? Math.round(v) : null; }
+function hzRange(low, high) {
+  const a = hzOf(low), b = hzOf(high);
+  return (a && b) ? ` (${a}\u2013${b} Hz)` : '';
+}
+
 function computePersonalPlan() {
   const p = PROG.readProfile() || {};
   const arr = k => Array.isArray(p[k]) ? p[k] : (p[k] ? [p[k]] : []);
@@ -1200,16 +1231,21 @@ function computePersonalPlan() {
   // ceiling down so the app cannot nudge you upward.
   // Ceiling: whoever argues for the tightest limit wins — an avoid-list entry
   // must never *raise* the ceiling, it can only pull it down.
+  // Research grounding (see voice_training/targets-and-acoustics.md):
+  // female-typical speaking F0 is ~180–220 Hz, the ambiguous band ~140–180 Hz,
+  // and F0 explains only ~42% of perceived gender (Leung/Oates/Chan 2018), so the
+  // range is a *guard rail*, not the goal. Default floor is F#3 (185 Hz) so the
+  // routine never parks you in the ambiguous band; androgynous work deliberately
+  // opens it down to E3 (165 Hz).
   const CEILING = ['F3', 'F#3', 'G3', 'G#3', 'A3', 'A#3'];
-  let ceilingIdx = CEILING.indexOf('A#3');
+  let ceilingIdx = CEILING.indexOf('A#3');   // 233 Hz — just above the female-typical top (220 Hz)
   if (timbre.includes('softer') || timbre.includes('lighter') || goal.includes('softer')) {
-    ceilingIdx = Math.min(ceilingIdx, CEILING.indexOf('F#3'));
+    ceilingIdx = Math.min(ceilingIdx, CEILING.indexOf('G3'));   // 196 Hz: softness is phonation, not height
   }
   if (avoid.includes('too-high')) ceilingIdx = Math.min(ceilingIdx, CEILING.indexOf('G3'));
   if (avoid.includes('strain')) ceilingIdx = Math.min(ceilingIdx, CEILING.indexOf('G3'));
-  if (goal.includes('explore') && !avoid.length && !timbre.length) ceilingIdx = CEILING.indexOf('A#3');
   const high = CEILING[ceilingIdx];
-  const low = goal.includes('androgynous') ? 'E3' : 'F3';
+  const low = goal.includes('androgynous') ? 'E3' : 'F#3';
 
   // Volume stage: only push loudness when nothing argues against strain.
   const volumeLoud = !(avoid.includes('strain') || timbre.includes('softer') || timbre.includes('lighter'));
@@ -1277,8 +1313,15 @@ function applyProfileToRoutine() {
       const OCT = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
       const idx = n => { const m = /^([A-G]#?)(\d)$/.exec(n); return m ? OCT.indexOf(m[1]) + 12 * parseInt(m[2], 10) : 0; };
       const NAME = i => OCT[i % 12] + Math.floor(i / 12);
-      const ceilI = idx(plan.zone.high);
-      st.config.notes = st.config.__baseNotes.map(n => (idx(n) > ceilI ? NAME(ceilI) : n));
+      const ceilI = idx(plan.zone.high), floorI = idx(plan.zone.low);
+      // clamp into the working band on both sides: a note below the floor parks you
+      // in the ambiguous range, which is exactly what the guard rail is for.
+      st.config.notes = st.config.__baseNotes.map(n => {
+        const v = idx(n);
+        if (v > ceilI) return NAME(ceilI);
+        if (v < floorI) return NAME(floorI);
+        return n;
+      });
     }
     // single-note stages (resonance warm-ups) follow the ceiling too
     if (st.config.__baseNote === undefined) st.config.__baseNote = st.config.note;
@@ -2684,7 +2727,7 @@ const engine = {
     graphZone = { low, high };
     graphTargets = [];
     targetNoteKey = null;
-    document.getElementById('targetNote').textContent = low + '\u2013' + high;
+    document.getElementById('targetNote').textContent = low + '\u2013' + high + (typeof hzRange === 'function' ? hzRange(low, high) : '');
     graphCenterFreq = Math.sqrt(NOTE_FREQ_MAP[low] * NOTE_FREQ_MAP[high]);
     updateTargetRefBtn();
   },
@@ -3249,7 +3292,7 @@ function planSummaryRows() {
     ['Timbre aim', map('timbre').join(', ') || 'not set'],
     ['Avoiding', map('avoid').join(', ') || 'nothing specific'],
     ['Will use it', map('contexts').join(', ') || 'not set'],
-    ['Your working range', zoneTxt + ' \u2014 the whole routine keeps you here on purpose'],
+    ['Your working range', zoneTxt + hzRange(zone ? zone.low : 'F#3', zone ? zone.high : 'A#3') + ' \u2014 the whole routine keeps you here on purpose. Clinically, feminine-typical speech sits around 180\u2013220 Hz; this band is a guard rail, not the goal \u2014 pitch explains only ~42% of how a voice reads.'],
     ['Today\u2019s session', stageList + ' (about 15\u201320 min)'],
   ];
 }
@@ -3258,7 +3301,7 @@ function planCardHTML() {
   let changes = '';
   if (plan) {
     const rows = (plan.effects || []).concat([
-      ['Working range', plan.zone.low + '\u2013' + plan.zone.high + (plan.zone.high === 'A#3' && plan.zone.low === 'F3' ? ' (routine default)' : ' \u2014 narrowed/shifted by your goal, timbre aim and avoid list')],
+      ['Working range', plan.zone.low + '\u2013' + plan.zone.high + hzRange(plan.zone.low, plan.zone.high) + ' \u2014 feminine-typical speech is ~180\u2013220 Hz; this is a guard rail, not the goal (pitch explains only ~42% of how a voice reads)'],
       ['Volume stage', plan.volumeLoud ? 'normal \u2014 projection allowed' : 'kept gentle (strain avoid / softer aim)'],
     ]);
     changes = '<div class="plan-card" style="margin-top:10px;"><div class="plan-card-title">What your answers actually changed</div>' +
@@ -3458,6 +3501,9 @@ function mainLoop() {
     ? detectPitchFFT(spectroFreqData, audioCtx.sampleRate, analyser.fftSize)
     : detectPitch();
   const freq = smoothedPitch(rawFreq);
+
+  // H1–H2 softness readout (only while a note is actually being sung)
+  if (freq && currentStage != null) { try { updateSoftnessMeter(freq); } catch (e) {} }
 
   if (!noteNameEl) cacheStatusEls();
 
@@ -3842,7 +3888,7 @@ async function tryStartSession() {
       targetNoteKey = null;
       const midFreq = Math.sqrt(NOTE_FREQ_MAP[low] * NOTE_FREQ_MAP[high]);
       graphCenterFreq = midFreq;
-      document.getElementById('targetNote').textContent = low + '\u2013' + high;
+      document.getElementById('targetNote').textContent = low + '\u2013' + high + (typeof hzRange === 'function' ? hzRange(low, high) : '');
     }
     updateTargetRefBtn();
     document.getElementById('targetPicker').classList.remove('open');
@@ -4099,7 +4145,7 @@ const PROG = (() => {
   const ls = (() => { try { return window.localStorage; } catch (e) { return null; } })();
 
   const freshSession = () => ({ date: new Date().toISOString(), activeMs: 0, lastTick: null,
-    stageMs: {}, brightMs: 0, brightFrames: 0, completed: [], recordingsSaved: 0, checkin: null });
+    stageMs: {}, brightMs: 0, brightFrames: 0, softMs: 0, softFrames: 0, completed: [], recordingsSaved: 0, checkin: null });
 
   // current-session state (sessionStorage survives reloads within the tab)
   let cur = null;
@@ -4125,6 +4171,7 @@ const PROG = (() => {
     h.push({ date: cur.date, activeMs: cur.activeMs, stageMs: cur.stageMs,
              completed: [...cur.completed],
              brightness: cur.brightFrames > 0 ? cur.brightMs / cur.brightFrames : null,
+             softness: cur.softFrames > 0 ? cur.softMs / cur.softFrames : null,
              recordingsSaved: cur.recordingsSaved,
              checkin: cur.checkin || null });
     try { ls.setItem(LS_KEY, JSON.stringify(h.slice(-500))); } catch (e) {}
@@ -4174,8 +4221,20 @@ const PROG = (() => {
       if (voiced) { cur.brightMs += ratio; cur.brightFrames++; }
       dirty = true;
     },
+    recordSoftness(db) {
+      if (isFinite(db)) { cur.softMs += db; cur.softFrames++; }
+      dirty = true;
+    },
     setCheckin(scores) { cur.checkin = scores; dirty = true; },
     checkinScores() { return cur.checkin || {}; },
+    softnessTrend() {
+      const h = readHistory().filter(s => s.softness != null).slice(-10);
+      if (h.length < 4) return h.length ? { count: h.length, delta: 0 } : null;
+      const half = Math.floor(h.length / 2);
+      const earlier = h.slice(0, half).reduce((a, s) => a + s.softness, 0) / Math.max(1, half);
+      const recent = h.slice(half).reduce((a, s) => a + s.softness, 0) / Math.max(1, h.length - half);
+      return { count: h.length, delta: recent - earlier, recent };
+    },
     brightnessTrend() {
       const h = readHistory().filter(s => s.brightness != null).slice(-10);
       if (h.length < 2) return null;
@@ -4213,6 +4272,48 @@ const PROG = (() => {
 // Ratio of high-band (2.5k–5.5k) to mid/low (0.2k–1k) energy. Not a score —
 // a per-session trend line only. Values are meaningful relative to your own
 // history; frames count only while the mic picks up sound.
+// Research note: perceived timbre brightness lives in the ~2–4 kHz band and is
+// often quantified as spectral centroid / frequency-of-half-energy; perceptual
+// brightness correlates with the centroid but is not identical to it (Schubert
+// & Wolfe), which is exactly why this stays a personal trend and never a score.
+
+// ── Softness meter: H1–H2 in dB ──
+// H1–H2 is the standard acoustic measure of phonation type: the level difference
+// between the first two harmonics. Higher (positive) = breathier / lighter
+// adduction ("soft"); negative = pressed / strained. Reported range for normal
+// English speakers is roughly +2 dB to +19 dB (Kreiman, Gerratt &
+// Antoñanzas-Barroso 2007, as summarised in PMC2997695); breathy vs modal differ
+// by only about 4 dB, and listeners notice ~2–4 dB. Shown as a live readout and
+// a per-session average, never as a pass/fail number.
+let lastH1H2 = null;
+function updateSoftnessMeter(f0) {
+  if (!analyser || !spectroFreqData || !audioCtx || !f0 || f0 < 60 || f0 > 500) return;
+  const binHz = audioCtx.sampleRate / analyser.fftSize;
+  const dbAt = hz => {
+    const i = Math.round(hz / binHz);
+    if (i < 1 || i >= spectroFreqData.length) return null;
+    // take the strongest of the 3 bins around the harmonic (peak picking)
+    let best = -Infinity;
+    for (let k = i - 1; k <= i + 1; k++) if (k >= 0 && k < spectroFreqData.length) best = Math.max(best, spectroFreqData[k]);
+    return best;
+  };
+  const h1 = dbAt(f0), h2 = dbAt(f0 * 2);
+  if (h1 == null || h2 == null || h1 === -Infinity || h2 === -Infinity) return;
+  const diff = h1 - h2;
+  if (!isFinite(diff) || Math.abs(diff) > 40) return;
+  lastH1H2 = diff;
+  PROG.recordSoftness(diff);
+  const el = document.getElementById('softMeterVal');
+  if (el) {
+    el.textContent = diff.toFixed(1) + ' dB';
+    const soft = diff >= 6, pressed = diff < 1.5;
+    el.style.color = pressed ? 'var(--warning)' : (soft ? 'var(--success)' : 'var(--accent)');
+    const hint = document.getElementById('softMeterHint');
+    if (hint) hint.textContent = pressed
+      ? 'pressed / effortful — ease the press'
+      : soft ? 'soft & breathy — light adduction' : 'modal — middle of the road';
+  }
+}
 function updateBrightnessMeter() {
   if (!analyser || !spectroFreqData || !audioCtx) return;
   const binHz = audioCtx.sampleRate / analyser.fftSize;
@@ -4357,6 +4458,21 @@ function openProgressDashboard() {
     trendHtml = `<div style="font-size:15px;">Recent sessions trend <b style="color:${col};">${dir}</b> than earlier ones <span style="color:var(--text2);">(relative, last ${trend.count} sessions)</span></div>`;
   } else if (trend) {
     trendHtml = '<div style="font-size:15px;">Recent sessions hold a <b>steady brightness</b> <span style="color:var(--text2);">(relative, last ' + trend.count + ' sessions)</span></div>';
+  }
+
+  // Softness (H1–H2) trend — same "relative to your own history" rule as brightness
+  const sTrend = PROG.softnessTrend ? PROG.softnessTrend() : null;
+  const softEl = document.getElementById('progSoftness');
+  if (softEl) {
+    if (!sTrend) {
+      softEl.innerHTML = '<div class="prog-empty">No softness readings yet \u2014 sing or hold a steady note during a session and H1\u2013H2 is recorded automatically.</div>';
+    } else if (Math.abs(sTrend.delta) < 1.0) {
+      softEl.innerHTML = '<div style="font-size:15px;">Softness (H1\u2013H2) is <b>steady</b> at about <b>' + sTrend.recent.toFixed(1) + ' dB</b> <span style="color:var(--text2);">(your own average, last ' + sTrend.count + ' sessions; typical range +2 to +19 dB)</span></div>';
+    } else {
+      const dir = sTrend.delta > 0 ? '\u2197 softer / breathier' : '\u2198 more pressed';
+      const col = sTrend.delta > 0 ? 'var(--success)' : 'var(--warning)';
+      softEl.innerHTML = '<div style="font-size:15px;">Softness (H1\u2013H2) trends <b style="color:' + col + ';">' + dir + '</b> (now about ' + sTrend.recent.toFixed(1) + ' dB) <span style="color:var(--text2);">(your own history, last ' + sTrend.count + ' sessions)</span></div>';
+    }
   }
 
   const curZones = (typeof graphZone === 'object' && graphZone) ? { [ROUTINE.stages[currentStage].id]: graphZone } : {};
