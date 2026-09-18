@@ -292,7 +292,8 @@ body:has(#main.focus-mode) { overflow: hidden; }
   </div>
   <div style="text-align:left;max-width:460px;font-size:13px;color:var(--text2);line-height:1.7;margin:4px 0 8px;">
     <div style="font-size:14px;color:var(--text);font-weight:600;margin-bottom:6px;">How to use</div>
-    <div><b style="color:var(--accent);">Pitch / Spectrogram</b> &mdash; toggle between a pitch tracker and a frequency spectrogram. Both show a 10-second rolling window.</div>
+    <div><b style="color:var(--accent);">Pitch / Spectrogram</b> &mdash; toggle between a pitch tracker and a frequency spectrogram. Both show a 10-second rolling window. <b>Which to use:</b> stay on <b>Pitch</b> for note work, glides and the register blend (and to catch yourself drifting up); switch to <b>Spectrogram</b> when you're working on resonance &mdash; brighter, more forward speech shows up as energy on the right of the picture. Neither gives a score.</div>
+    <div style="margin-top:6px;"><b style="color:var(--accent);">A session runs ~15&ndash;20 min</b> through fixed stages, from check-in to free speech. Aim for 15&ndash;20 focused minutes, 5&ndash;6 days a week; the weekly benchmark stage appears once a week and is read-only on purpose so comparisons stay fair. There's no streak counter &mdash; rest days cost you nothing.</div>
     <div style="margin-top:6px;"><b style="color:var(--accent);">Click &amp; hold</b> on the graph to see the note at your cursor position.</div>
     <div style="margin-top:6px;"><b style="color:var(--accent);">Right-click</b> to pin a reference line at any frequency. Each line gets its own color and appears in both views. Remove lines individually or clear all from the header.</div>
     <div style="margin-top:6px;"><b style="color:var(--accent);">Tone volume</b> slider controls the reference tone loudness during guided exercises.</div>
@@ -537,6 +538,46 @@ body:has(#main.focus-mode) { overflow: hidden; }
     <div class="modal">
       <h2 id="profTitle">Your voice profile</h2>
       <div class="modal-sub">Shapes how the routine talks to you and how targets are framed. Stays on this device; edit anytime.</div>
+
+      <details id="profHow" open style="max-width:640px;text-align:left;margin:0 0 14px;">
+        <summary style="cursor:pointer;font-size:14px;font-weight:600;color:var(--text);">How this works &mdash; read me once (~2 min)</summary>
+        <div style="font-size:12px;color:var(--text2);margin:6px 0 2px;">Session flow, how often to train, which graph to use, what the app refuses to score, and where your data lives.
+          <a href="#" id="profSkipHow" style="color:var(--accent);text-decoration:underline;margin-left:4px;">Skip to the questions &rarr;</a>
+        </div>
+        <div class="learn-list">
+          <div class="learn-item">
+            <div class="t">What actually happens in a session</div>
+            <div class="why">About 15&ndash;20 minutes, in fixed stages: <b>Check-in</b> (30 s &mdash; how your voice feels today, and a hard stop if you have pain) &rarr; <b>Warm-up</b> (free, easy sounds) &rarr; <b>Resonance</b> (tongue-root &amp; cavity size &mdash; the piece that changes how your voice reads) &rarr; <b>Register Blend</b> (smooth connection between the two textures) &rarr; <b>Volume</b> (loud without getting heavier) &rarr; <b>Sentences</b> (real speech, read aloud) &rarr; <b>Prosody &amp; Emotion</b> (melody, stress) &rarr; <b>Fluidity</b> (moving between your everyday and target voice on purpose). A <b>Benchmark</b> stage appears once a week: the same locked List 1 every time, so week-to-week comparison is honest.</div>
+          </div>
+          <div class="learn-item">
+            <div class="t">Why the order is what it is</div>
+            <div class="why">Every later stage is built on the setup from the earlier ones. If resonance collapses, sentences collapse with it &mdash; so the app makes you establish the sound <i>before</i> you use it in speech.</div>
+          </div>
+          <div class="learn-item">
+            <div class="t">How often you should train</div>
+            <div class="why"><b>15&ndash;20 focused minutes a day, 5&ndash;6 days a week</b> is the sweet spot. Short and consistent beats long and rare &mdash; your voice adapts through repeated gentle exposure, not through marathon sessions. Take a rest day when your throat feels tired; skip days are fine, this app deliberately has no streak counter to punish you. Do the <b>benchmark once a week</b> (same day each week if you can). Every few weeks, re-listen to your old recordings &mdash; that's where progress becomes audible, because day-to-day change is too small to hear.</div>
+          </div>
+          <div class="learn-item">
+            <div class="t">Pitch view vs Spectrogram &mdash; which one do I use?</div>
+            <div class="why"><b>Pitch view</b> (default): one line showing how high or low you are over the last 10 seconds. Use it for anything about notes, glides, and the blend &mdash; and to catch yourself drifting upward when you get excited. <b>Spectrogram</b>: a heat map of energy across all frequencies. You can't read a note off it, but you <i>can</i> see resonance move: brighter/forward speech lights up energy on the right of the picture. Use it when you're working on resonance or brightness and want to see the change.</div>
+            <div class="why">Rule of thumb: <b>start on Pitch</b> and stay there for stage work; switch to <b>Spectrogram</b> when you're specifically hunting resonance. You can change the default in the splash screen, and toggle any time from the header.</div>
+            <div class="why">Neither view gives you a score or a "sounds female" verdict.</div>
+          </div>
+          <div class="learn-item">
+            <div class="t">What the app deliberately does not do</div>
+            <div class="why">No gender score, no "male/female %" reading, no leaderboard, no streak pressure &mdash; those either lie or push you into strain. Targets are bands, not single notes, and brightness is shown as a trend against your own history, never as an absolute number.</div>
+          </div>
+          <div class="learn-item">
+            <div class="t">Where your data lives</div>
+            <div class="why">Entirely in this browser on this device: recordings, progress, profile. Nothing is uploaded and there is no account. Moving to another device means using <b>Export backup</b> in the Progress panel and importing it on the other side.</div>
+          </div>
+          <div class="learn-item">
+            <div class="t">Safety, plain and simple</div>
+            <div class="why">Burning, pain, or a strained feeling = <b>stop for today</b>. Hoarseness past a day or two = rest; past two weeks = see an ENT. This is a self-practice tool, not therapy or medical care.</div>
+          </div>
+        </div>
+      </details>
+      <button id="profHowToggle" class="sm" style="display:none;margin:0 0 14px;">Show "How this works" again</button>
       <div id="profMsg" style="font-size:13px;color:var(--text2);margin-bottom:14px;"></div>
 
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">My goal</h3>
@@ -4151,6 +4192,13 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
 
   function open(preProfile, intro) {
     markChips(preProfile);
+    // "How this works" is open on first run; returning users see the toggle instead
+    const how = document.getElementById('profHow');
+    const howToggle = document.getElementById('profHowToggle');
+    if (how && howToggle) {
+      if (intro) { how.open = true; howToggle.style.display = 'none'; }
+      else { how.open = false; howToggle.style.display = ''; }
+    }
     const msg = document.getElementById('profMsg');
     document.getElementById('profSaveBtn').textContent = intro ? 'Save & start' : 'Save profile';
     msg.textContent = intro ? 'Pick anything that fits — you can change it anytime. Nothing leaves this device.' : '';
@@ -4159,6 +4207,20 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
   }
   function close() { overlay.classList.remove('open'); }
   window.__openVoiceProfile = open;
+  const skipHow = document.getElementById('profSkipHow');
+  if (skipHow) skipHow.addEventListener('click', (e) => {
+    e.preventDefault();
+    const how = document.getElementById('profHow');
+    if (how) how.open = false;
+    const t = document.getElementById('profTitle');
+    if (t) t.scrollIntoView({ block: 'start' });
+  });
+  const howToggleBtn = document.getElementById('profHowToggle');
+  if (howToggleBtn) howToggleBtn.addEventListener('click', () => {
+    const how = document.getElementById('profHow');
+    how.open = !how.open;
+    if (how.open) how.scrollIntoView({ block: 'start' });
+  });
 
   document.getElementById('profileBtn').addEventListener('click', () => open(PROG.readProfile(), false));
   document.getElementById('profCloseBtn').addEventListener('click', close);
