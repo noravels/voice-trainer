@@ -217,6 +217,11 @@ body:has(#main.focus-mode) { overflow: hidden; }
 .help-q { display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px; min-width:16px; padding:0; margin-left:6px; border-radius:50%; border:1px solid var(--text2); background:transparent; color:var(--text2); font-size:11px; font-weight:700; line-height:1; cursor:pointer; vertical-align:middle; }
 .help-q:hover, .help-q[aria-expanded="true"] { border-color:var(--accent); color:var(--accent); }
 .help-q:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+.ev-table { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+.ev-row { border-left:2px solid var(--accent); padding-left:10px; font-size:12px; line-height:1.6; color:var(--text2); }
+.ev-target { color:var(--text); font-weight:600; font-size:13px; }
+.ev-k { color:var(--accent); font-weight:600; }
+.ev-src { opacity:0.85; }
 .plan-card { max-width:620px; text-align:left; border:1px solid var(--border,rgba(255,255,255,0.10)); border-radius:8px; padding:10px 12px; margin:12px 0; background:rgba(255,255,255,0.02); }
 .plan-card-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
 .plan-row { display:flex; gap:10px; font-size:12px; line-height:1.7; color:var(--text2); }
@@ -406,7 +411,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div class="target-display" style="position:relative;">
         <div class="target-label">Target <span style="font-size:10px;opacity:0.6;">(click to edit)</span></div>
         <div class="target-note-row">
-          <div class="target-note" id="targetNote" role="button" tabindex="0" aria-label="Edit target note" aria-haspopup="true" aria-expanded="false">F#3–A#3 (185–233 Hz)</div>
+          <div class="target-note" id="targetNote" role="button" tabindex="0" aria-label="Edit target note" aria-haspopup="true" aria-expanded="false" title="Why this band: feminine-typical speaking pitch is ~180–220 Hz and the ambiguous middle is ~140–180 Hz (UCSF). Pitch explains only ~42% of perceived gender (Leung, Oates & Chan 2018), so this is a guard rail — the real work is resonance and prosody. Full reasoning: My plan → Why these targets.">F#3–A#3 (185–233 Hz)</div>
           <button class="target-ref-btn" id="targetRefBtn" title="Hold to play reference tone" aria-label="Hold to play reference tone for the target note" style="display:none;">&#9834;</button>
         </div>
         <div class="vol-control">
@@ -743,6 +748,11 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <div class="why"><b>Brightness.</b> Perceived brightness lives in the broad <b>2&ndash;4 kHz</b> region and is quantified as spectral centroid or "frequency of half energy". Reference points from professional voices: approx <b>2.4 kHz</b> in basses up to <b>3.1 kHz</b> in sopranos &mdash; higher = brighter. Brightness here is only ever shown as your own trend.</div>
         <div class="why"><b>Softness.</b> Softness is a phonation setting, not a pitch. It is measured as <b>H1&ndash;H2</b> (level difference between the first two harmonics): positive = breathier/softer, negative = pressed/strained. Reported range for normal speakers: about <b>+2 to +19 dB</b>; breathy vs modal differ by only ~4 dB and listeners notice ~2&ndash;4 dB. The app now shows your live H1&ndash;H2 while you hold a note.</div>
         <div class="why">Sources: UCSF Gender Affirming Health Program; Leung, Oates &amp; Chan 2018 (JSLHR); Schwarz et al. / Södersten et al. summarised in a 2020 feminisation review (PMC7024865); timbre parameters study (PMC9605961); H1&ndash;H2 perception study (PMC2997695, after Kreiman et al. 2007). Full numbers and links: <code>voice_training/targets-and-acoustics.md</code> in the project.</div>
+      </div>
+      <div class="learn-item">
+        <div class="t">Targets \u2190 literature: the app shows its reasoning</div>
+        <div class="why">Nothing in this app is a made-up rule. Every target is set from published numbers, and the app lists the reason next to it \u2014 you can read it in <b>My plan \u2192 Why these targets</b>, and in the check-in card.</div>
+        <div id="learnEvidence"></div>
       </div>
       <div class="learn-item">
         <div class="t">Timbre (the word used in your profile)</div>
@@ -3275,6 +3285,43 @@ const PLAN_LABELS = {
   avoid: { 'too-high': 'sounding too high', artificial: 'sounding artificial', nasal: 'sounding nasal', strain: 'straining your voice', theatrical: 'sounding theatrical' },
   contexts: { home: 'at home', phone: 'phone / online calls', friends: 'friends & family', daily: 'daily life', work: 'work / school' },
 };
+
+// ── Evidence trail: target ← literature ──────────────────────────────
+// The app is explicit about *why* a target exists, so nothing looks arbitrary.
+// Each row: what we set, what the literature says, and which source.
+const EVIDENCE = [
+  { target: 'Working range (feminine routes)', ours: 'F#3\u2013A#3 = 185\u2013233 Hz',
+    lit: 'Feminine-typical speaking pitch \u2248 180\u2013220 Hz; the ambiguous middle is \u2248 140\u2013180 Hz; masculine-typical \u2248 100\u2013140 Hz.',
+    src: 'UCSF Gender Affirming Health Program; band summary in PhonaLab clinical review' },
+  { target: 'Why pitch is a guard rail, not the goal', ours: 'a band you stay inside \u2014 never a single note to hit',
+    lit: 'Speaking F0 explains only 41.6% of the variance in perceived gender across 38 studies.',
+    src: 'Leung, Oates & Chan 2018, JSLHR (meta-analysis)' },
+  { target: 'Resonance gets the emphasis', ours: 'resonance + tongue-root stages carry the load',
+    lit: 'Formant frequencies are on average ~20% higher in cis women than cis men, and these shifts are trainable (measurable formant change after 8\u201312 session programmes).',
+    src: 'Schwarz et al.; S\u00f6dersten et al. \u2014 summarised in PMC7024865' },
+  { target: 'Softness treated as phonation, not pitch', ours: 'live H1\u2013H2 readout; a softer aim lowers the ceiling to G3 (196 Hz) instead of pushing you up',
+    lit: 'H1\u2013H2 (level difference between the first two harmonics) measures phonation type: positive = breathy/soft, negative = pressed. Normal speakers span about +2 to +19 dB; breathy vs modal differ by only ~4 dB.',
+    src: 'Kreiman, Gerratt & Anto\u00f1anzas-Barroso 2007 (summarised in PMC2997695)' },
+  { target: 'Brightness shown as a personal trend', ours: 'high-band (2.5\u20135.5 kHz) vs mid/low (0.2\u20131 kHz) energy ratio, only ever compared to your own history',
+    lit: 'Perceived timbre brightness lives in the broad 2\u20134 kHz band and is quantified as spectral centroid / frequency-of-half-energy \u2014 around 2.4 kHz in basses rising to \u2248 3.1 kHz in sopranos. Brightness correlates with the centroid but is not identical to it, so a single number would overclaim.',
+    src: 'PMC9605961 (timbre parameters); Schubert & Wolfe, UNSW' },
+  { target: 'Volume work cut when strain is flagged', ours: '1 repetition at a comfortable level, with a note saying why',
+    lit: 'Pressed/strained phonation shows up as negative or near-zero H1\u2013H2; raising both pitch and effort is what turns practice into strain.',
+    src: 'H1\u2013H2 literature (PMC2997695); voice-hygiene guidance in UCSF vocal-health page' },
+  { target: 'Dose: 15\u201320 min/day, 5\u20136 days, no streaks', ours: 'short daily sessions; the weekly benchmark stays read-only',
+    lit: 'Therapy meta-analysis reports mean F0 gains of +27 Hz (sustained vowel), +39 Hz (reading) and +25 Hz (spontaneous speech) \u2014 accumulated over weeks of short sessions, not single long ones.',
+    src: '2023 speech-therapy meta-analysis, as summarised in PhonaLab clinical review' },
+];
+function evidenceTableHTML() {
+  return '<div class="ev-table">' + EVIDENCE.map(e => `
+    <div class="ev-row">
+      <div class="ev-target">${e.target}</div>
+      <div class="ev-ours"><span class="ev-k">In this app:</span> ${e.ours}</div>
+      <div class="ev-lit"><span class="ev-k">Because the literature says:</span> ${e.lit}</div>
+      <div class="ev-src"><span class="ev-k">Source:</span> ${e.src}</div>
+    </div>`).join('') + '</div>';
+}
+
 function planSummaryRows() {
   const p = PROG.readProfile() || {};
   const arr = k => Array.isArray(p[k]) ? p[k] : (p[k] ? [p[k]] : []);
@@ -3329,7 +3376,7 @@ function planNotesFor(stage) {
     notes.push(['stop', 'You flagged pain. Do not practise through it \u2014 skip the load-bearing stages (volume, blend) and rest.']);
   }
   if (avoid.includes('too-high') && ['resonance', 'blend', 'volume', 'sentences', 'prosody'].includes(id)) {
-    notes.push(['avoid', 'You asked to avoid sounding too high \u2014 stay inside the zone; do not chase pitch. Brightness comes from space, not from height.']);
+    notes.push(['avoid', 'You asked to avoid sounding too high \u2014 stay inside the zone; do not chase pitch. Brightness comes from space, not from height. <span style="opacity:0.75;">(Feminine-typical speech tops out near 220 Hz; pitch explains only ~42% of how a voice reads \u2014 UCSF; Leung et al. 2018.)</span>']);
   }
   if (avoid.includes('nasal') && ['resonance', 'sentences', 'prosody'].includes(id)) {
     notes.push(['avoid', 'Nasality watch: keep the wide, yawny space. If it sounds pinched, make the cavity bigger rather than pushing.']);
@@ -3339,6 +3386,12 @@ function planNotesFor(stage) {
   }
   if (avoid.includes('artificial') && ['prosody', 'fluid', 'read'].includes(id)) {
     notes.push(['avoid', 'You want to avoid sounding artificial \u2014 keep prosody smaller than feels impressive. Real speech, not a performance.']);
+  }
+  if (['resonance', 'troot', 'bright'].includes(id)) {
+    notes.push(['aim', 'This is the stage that actually changes how your voice reads: formant frequencies run ~20% higher in cis women, and they move with vocal-tract shape (larynx height, tongue root) \u2014 which is what you are training here. <span style="opacity:0.75;">(Schwarz et al.; S\u00f6dersten et al., akt. PMC7024865.)</span>']);
+  }
+  if (['soft', 'texture', 'blend'].includes(id)) {
+    notes.push(['aim', 'Softness is a phonation setting, not a pitch: measured as H1\u2013H2, where positive = lighter adduction. Normal speakers sit around +2 to +19 dB. <span style="opacity:0.75;">(Kreiman et al. 2007, akt. PMC2997695.)</span>']);
   }
   const plan = window.__activePlan || {};
   if (plan.neutralCues && ['resonance', 'soft', 'bright', 'prosody', 'fluid'].includes(id)) {
@@ -4810,8 +4863,13 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
   if (!ov) return;
   const open = () => ov.classList.add('open');
   const close = () => ov.classList.remove('open');
+  const fillEvidence = () => {
+    const host = document.getElementById('learnEvidence');
+    if (host && !host.innerHTML && typeof evidenceTableHTML === 'function') host.innerHTML = evidenceTableHTML();
+  };
+  fillEvidence();
   const spl = document.getElementById('splashLearnBtn');
-  if (spl) spl.addEventListener('click', open);
+  if (spl) spl.addEventListener('click', () => { fillEvidence(); open(); });
   // My plan overlay reuses the same summary the check-in stage shows
   (function initPlanUI() {
     const pov = document.getElementById('planOverlay');
@@ -4819,7 +4877,10 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     const render = () => {
       const rows = typeof planSummaryRows === 'function' ? planSummaryRows() : [];
       document.getElementById('planBody').innerHTML = planCardHTML() +
-        '<div class="modal-sub" style="margin-top:10px;">Stages shown above are for your current route. Warnings and timbre prompts appear inside the stages themselves when they matter.</div>';
+        '<div class="modal-sub" style="margin-top:12px;">Stages shown above are for your current route. Warnings and timbre prompts appear inside the stages themselves when they matter.</div>' +
+        '<div class="plan-card" style="margin-top:12px;"><div class="plan-card-title">Why these targets \u2014 the literature behind each one</div>' +
+        (typeof evidenceTableHTML === 'function' ? evidenceTableHTML() : '') +
+        '<div class="plan-card-foot">Full numbers, links and caveats: <code>voice_training/targets-and-acoustics.md</code> in the project.</div></div>';
     };
     const popen = () => { render(); pov.classList.add('open'); };
     const pclose = () => pov.classList.remove('open');
@@ -4835,7 +4896,7 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     window.__openPlan = popen;
   })();
   const hdr = document.getElementById('learnBtn');
-  if (hdr) hdr.addEventListener('click', open);
+  if (hdr) hdr.addEventListener('click', () => { fillEvidence(); open(); });
   document.getElementById('learnCloseBtn').addEventListener('click', close);
   ov.addEventListener('click', e => { if (e.target === e.currentTarget) close(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && ov.classList.contains('open')) close(); });
