@@ -544,6 +544,13 @@ body:has(#main.focus-mode) { overflow: hidden; }
         <button class="chip" data-v="foundation-first">Foundation-first — understand the instrument before gender shaping (VAMethod lesson order)</button>
       </div>
 
+      <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Which language(s) do you want to practice in? <span style="font-weight:400">(multi-select — prosody packs match each)</span></h3>
+      <div class="chip-group" data-key="practiceLanguages" data-multi="true">
+        <button class="chip" data-v="tr">T&uuml;rk&ccedil;e</button>
+        <button class="chip" data-v="en">English</button>
+      </div>
+      <div class="modal-sub" style="margin-top:2px;font-size:11px;">The first selected language is the one sessions start in. Sentences, prosody and emotion prompts follow it; technique stages are language-independent.</div>
+
       <h3 style="font-size:13px;color:var(--text2);margin:12px 0 6px;">Experience</h3>
       <div class="chip-group" data-key="experience">
         <button class="chip" data-v="none">Completely new</button>
@@ -729,11 +736,177 @@ const SETUP_STARTERS = [
   'Setup: "hh-ahh\u2026" — telefonla arıyor gibi kendini tanıt.',
 ];
 
+// Softness phrases (Foundation path, per language)
+const SOFT_STARTERS_TR = [
+  'Ah… yorgunum bugün.',
+  'Ah… nasıl oldu bu?',
+  'Ah… güzel bir hatıra.',
+];
+const SOFT_STARTERS_EN = [
+  'Ah… I am so tired today.',
+  'Ah… how did that happen?',
+  'Ah… what a memory.',
+];
+
+// ── English language pack (noravels fork) ──
+// Turkish pack stays the default; English covers sentences + prompts +
+// resonance vowels. Structure is language-agnostic on purpose: add a new
+// pack below and register it in LANGUAGE_PACKS to support another language.
+const ENGLISH_SENTENCES = [
+  [
+    'I usually have coffee in the morning and save tea for lazy afternoons.',
+    'I need to stop by the grocery store on my way home tonight.',
+    'We watched a movie yesterday and I fell asleep halfway through.',
+    'The bus was late again this morning and I barely made it.',
+    'My family is planning a video call for the weekend.',
+    'The new place downtown has a surprisingly long menu.',
+    'The meeting got moved from ten to ten-thirty tomorrow.',
+    'I am thinking of making soup and pasta for dinner.',
+  ],
+  [
+    'My cat always wakes me up by walking on my pillow.',
+    'There are only two chapters left to finish this book.',
+    'I joined the gym but have not gone once this week.',
+    'The forecast says it will rain all weekend.',
+    'I left my phone at home and felt offline all day.',
+    'Our neighbor brought us homemade pastry yesterday.',
+    'We aim to start the new project sometime this month.',
+    'A short walk after work makes the evening so much better.',
+  ],
+  [
+    'On vacation I prefer the beach early in the morning.',
+    'A quiet room helps me focus when I am studying.',
+    'My friends and I are going to a movie on Saturday.',
+    'The soup recipe turned out right on my first try.',
+    'My laptop has started slowing down, maybe the disk is full.',
+    'A morning run makes the whole day feel better.',
+    'I have not decided on the holiday plans yet.',
+    'Even a short nap in the afternoon helps a lot.',
+  ],
+  [
+    'The post office closes at six, I learned today.',
+    'Watering my plants is my Friday-evening routine.',
+    'I listened to the new album, the second track is lovely.',
+    'The pharmacy moved around the corner, I almost missed it.',
+    'I need to look up that word in a dictionary.',
+    'Public transport is faster than sitting in traffic.',
+    'There was wonderful weather for an evening walk.',
+    'Cheese, olives and tomatoes are always on our breakfast table.',
+  ],
+  [
+    'The picnic we planned for weeks finally happened.',
+    'My new headphones make the music sound incredibly clear.',
+    'I still cannot make early mornings a real habit.',
+    'A short walk after dinner really helps digestion.',
+    'That magazine article gave me a new perspective.',
+    'I studied two hours in the library, then walked to the shore.',
+    'The transport network in this city has grown a lot.',
+    'I prefer watching a film before reading any review.',
+  ],
+];
+
+const EN_EMOTION_STARTERS = [
+  'Angry: "Why is this STILL not done?!"',
+  'Excited: "I have news — sit down for this!"',
+  'Surprised: "No way, I can\u2019t believe it!"',
+  'Sarcastic: "Sure. It\u2019s always me who\u2019s right."',
+  'Comforting: calm a close friend down with your voice.',
+  'Scared: describe a night-time noise in an empty house.',
+  'Happy: tell someone you got a new job.',
+  'Annoyed but polite: call customer service about a billing error.',
+  'Affectionate: call your pet over in a soft voice.',
+  'Firm and clear: give a short instruction in a meeting.',
+  'Shy: confess a small crush to someone.',
+  'Tired: call a friend at the end of a long day.',
+  'Small talk: answer "How are you?" sincerely.',
+  'Phone voice: call the delivery guy and ask where the package is.',
+  'Caf\u00e9 chat: tell a friend about last night\u2019s match, confident pace.',
+  'Interview: introduce yourself briefly and clearly.',
+  'Astonished: react to a friend\u2019s wild story: "No way, really?"',
+  'Settling: end a small discussion with a calm "Alright, deal."',
+  'Sleepy: give one-word answers ("hmm", "yeah", "nope").',
+  'Sentimental: read a short goodbye message aloud.',
+];
+
+const EN_FLUID_STARTERS = [
+  'Start the sentence in your everyday voice, finish it in your target voice: "I don\u2019t know how the weather is but I need to go out."',
+  'Say the same sentence three times: everyday voice, target voice, everyday voice again.',
+  'Count one to ten while sliding resonance back and forth; keep pitch steady.',
+  'Like singing: sing one part of the scale in a relaxed setup, the next part in target voice.',
+  'Answer "How was your day?" twice: first sentence everyday, second in target voice.',
+  'Sustain an "ee" while shifting brightness forward and back; pitch stays put.',
+  'Tell a short story: narrator in target voice, a quoted line switching voices.',
+  'Sixty seconds of free speech: check on every breath that resonance stays forward.',
+];
+
+const EN_PLAY_PROMPTS = [
+  'Say the same sound three times: whisper, normal, loud.',
+  'Mimic a smooth melody line with your voice (oo-uu-ah).',
+  'Keep your lips still and slide the voice up and down (a siren).',
+  'Count one to ten, making every number slightly higher.',
+  'Start with a long "aaaa", then say something quiet after a breath.',
+  'Hold one vowel ("oo") as long as you can, then restart gently.',
+  'Use your voice freely: no shouting, no squeezing.',
+  'Say a nursery rhyme, changing the melody on each line.',
+  'Shift your voice by mood: tired, cheerful, rushed\u2026',
+  'Say one word at three pitch levels: low, middle, high.',
+];
+
+const EN_SETUP_STARTERS = [
+  'Setup: "hh-ahh\u2026" then ask: "What did you do this morning?"',
+  'Setup: "ahh-" then answer: "How is it going?"',
+  'Setup: yawn-vowel "ah\u2026" then: "What changed this week?"',
+  'Setup: "hh-ahh\u2026" then introduce yourself briefly.',
+  'Setup: "ahh\u2026" + "how are you feeling today?" \u2014 give a warm answer.',
+  'Setup: "hh-ahh\u2026" then talk about rent going up (angry tone).',
+  'Setup: "ahh\u2026" + ask what time it is.',
+  'Setup: slightly high + yawn \u2014 say two sentences about the weather.',
+  'Setup: "ahh\u2026" then describe your evening plans.',
+  'Setup: "hh-ahh\u2026" \u2014 introduce yourself as if calling someone.',
+];
+
+// Language packs: practice-language data. Add a new pack below and register
+// it in LANGUAGE_PACKS to support an additional language end-to-end.
+const LANGUAGE_PACKS = {
+  tr: {
+    label: 'T\u00fcrk\u00e7e',
+    sentences: TURKISH_SENTENCES,
+    emotionStarters: EMOTION_STARTERS,
+    fluidStarters: FLUID_STARTERS,
+    playPrompts: PLAY_PROMPTS,
+    setupStarters: SETUP_STARTERS,
+    softStarters: SOFT_STARTERS_TR,
+    resonanceVowels: [
+      { label: 'A', description: 'as in "ada"' },
+      { label: 'E', description: 'as in "ekmek"' },
+      { label: '\u0130', description: 'as in "iplik"' },
+      { label: 'O', description: 'as in "oda"' },
+      { label: 'U', description: 'as in "u\u011fultu"' },
+    ],
+  },
+  en: {
+    label: 'English',
+    sentences: ENGLISH_SENTENCES,
+    emotionStarters: EN_EMOTION_STARTERS,
+    fluidStarters: EN_FLUID_STARTERS,
+    playPrompts: EN_PLAY_PROMPTS,
+    setupStarters: EN_SETUP_STARTERS,
+    softStarters: SOFT_STARTERS_EN,
+    resonanceVowels: [
+      { label: 'A', description: 'as in "cat"' },
+      { label: 'E', description: 'as in "bed"' },
+      { label: 'EE', description: 'as in "see"' },
+      { label: 'O', description: 'as in "boat"' },
+      { label: 'OO', description: 'as in "boot"' },
+    ],
+  },
+};
+
 // noravels fork: practice-first routine (default path)
 const ROUTINE_PRACTICE = {
   name: "Voice Trainer — Fem & Fluid",
   client: "",
-  description: "Daily 15\u201320 min routine: warm-up, resonance, volume, Turkish sentences, prosody, fluidity. Progress is tracked on this device.",
+  description: "Daily 15\u201320 min routine: warm-up, resonance, volume, sentences, prosody, fluidity. Progress is tracked on this device.",
 
   stages: [
     { id: 'checkin', name: '0. Check-in', short: 'Check-in', type: 'checkin', config: {
@@ -747,14 +920,8 @@ const ROUTINE_PRACTICE = {
     { id: 'resonance', name: '2. Resonance', short: 'Resonance', type: 'resonance', config: {
       note: 'F3',
       preamble: 'First: tongue-root agility. Keep the tongue tip touching the back of the bottom teeth, then move the ROOT up and down (like a gentle "la-la"). The root moves the larynx \u2014 never push the larynx with your hand.',
-      instruction: 'Now on F3, explore cavity size through these Turkish vowels. Tongue-root UP & forward = smaller space, brighter. Tongue-root DOWN + yawn = larger space, darker. Only the inside changes \u2014 lips and jaw stay still.',
-      steps: [
-        { label: 'A', description: 'as in "ada"' },
-        { label: 'E', description: 'as in "ekmek"' },
-        { label: 'İ', description: 'as in "iplik"' },
-        { label: 'O', description: 'as in "oda"' },
-        { label: 'U', description: 'as in "u\u011Fultu"' },
-      ],
+      instruction: 'Now on F3, explore cavity size through these vowels. Tongue-root UP & forward = smaller space, brighter. Tongue-root DOWN + yawn = larger space, darker. Only the inside changes \u2014 lips and jaw stay still.',
+      stepsKey: 'resonanceVowels',
       showReference: true
     }},
     { id: 'blend', name: '3. Register Blend', short: 'Blend', type: 'glide', config: {
@@ -779,7 +946,7 @@ const ROUTINE_PRACTICE = {
     }},
     { id: 'prosody', name: '7. Prosody & Emotion', short: 'Prosody', type: 'free-talk', config: {
       promptsKey: 'emotionStarters', zone: { low: 'F3', high: 'A#3' },
-      instruction: 'Setup first (slightly high, yawn-vowel, connected), THEN say the quoted Turkish line with the named emotion. Emotion comes from brightness and melody \u2014 keep the pitch inside the zone.',
+      instruction: 'Setup first (slightly high, yawn-vowel, connected), THEN say the quoted line with the named emotion. Emotion comes from brightness and melody \u2014 keep the pitch inside the zone.',
       recording: true
     }},
     { id: 'fluid', name: '8. Fluidity', short: 'Fluid', type: 'free-talk', config: {
@@ -831,16 +998,12 @@ const ROUTINE_FOUNDATION = {
       ],
       showReference: true
     }},
-    { id: 'soft', name: '4. Softness (Yawn)', short: 'Soft', type: 'resonance', config: {
-      note: 'B3',
+    { id: 'soft', name: '4. Softness (Yawn)', short: 'Soft', type: 'free-talk', config: {
+      promptsKey: 'softStarters', zone: null,
       preamble: 'Give yourself a full, easy yawn.',
-      instruction: 'Keep the yawn-axis and say these Turkish phrases \u2014 same soft, large-space voice. Then note: it does NOT sound feminine alone. That is fine \u2014 softness is one ingredient. Partial focus = partial results.',
-      steps: [
-        { label: 'Phrase', description: '"Ah, yorgunum bug\u00fcn."' },
-        { label: 'Phrase', description: '"Ah, nas\u0131l oldu bu?"' },
-        { label: 'Phrase', description: '"Ah, g\u00FCzel bir hat\u0131ra."' },
-      ],
-      showReference: true
+      instruction: 'Keep the yawn-axis and say these phrases \u2014 same soft, large-space voice. Note: it does NOT sound feminine alone. That is fine \u2014 softness is one ingredient; partial focus = partial results, blending comes later.',
+      recording: false,
+      showReference: false
     }},
     { id: 'bright', name: '4b. Brightness (Ew)', short: 'Bright', type: 'repeat-on-note', config: {
       notes: ['A3'], reps: 3,
@@ -859,7 +1022,7 @@ const ROUTINE_FOUNDATION = {
     }},
     { id: 'read', name: '6b. Read', short: 'Read', type: 'read-aloud', config: {
       listsKey: 'sentences', zone: { low: 'F3', high: 'A#3' },
-      instruction: 'Read Turkish sentences with the same setup discipline. This is the Foundation path\u2019s speaking bridge \u2014 everything reconnects to real sentences.',
+      instruction: 'Read sentences in your practice language with the same setup discipline. This is the Foundation path\u2019s speaking bridge \u2014 everything reconnects to real sentences.',
       recording: true
     }},
   ],
@@ -2427,7 +2590,9 @@ function renderGlide(el, stage) {
 
 function renderReadAloud(el, stage) {
   const cfg = stage.config;
-  const lists = ROUTINE[cfg.listsKey];
+  // Lists resolve through the active language pack, keyed by listsKey.
+  // Benchmark stays on List 1 of the active language (same-list weekly comparison).
+  const lists = (LANGUAGE_PACKS[PROG.activeLang()] || {})[cfg.listsKey] || ROUTINE[cfg.listsKey] || [];
   if (!lists || !lists.length) { el.innerHTML = '<div class="stage-title">No sentence data available</div>'; return; }
   const isBenchmark = !!stage.benchmark;
   if (isBenchmark) {
@@ -2515,7 +2680,8 @@ function renderResonanceType(el, stage) {
   engine.setTarget(cfg.note);
 
   const inPreamble = stageState.step === 0 && cfg.preamble;
-  const steps = cfg.steps;
+  // steps come either inline (cfg.steps) or from the active language pack (cfg.stepsKey)
+  const steps = cfg.steps || ((LANGUAGE_PACKS[PROG.activeLang()] || {}).resonanceVowels) || [];
   const vowelStep = stageState.step - (cfg.preamble ? 1 : 0);
 
   el.innerHTML = `
@@ -2554,7 +2720,8 @@ function renderResonanceType(el, stage) {
 
 function renderFreeTalk(el, stage) {
   const cfg = stage.config;
-  const prompts = ROUTINE[cfg.promptsKey];
+  // prompts resolve through the active language pack, keyed by promptsKey
+  const prompts = (LANGUAGE_PACKS[PROG.activeLang()] || {})[cfg.promptsKey] || ROUTINE[cfg.promptsKey] || [];
   if (!prompts || !prompts.length) { el.innerHTML = '<div class="stage-title">No prompts available</div>'; return; }
   if (stageState.promptIdx == null) stageState.promptIdx = Math.floor(Math.random() * prompts.length);
   if (!stageState.recordings) stageState.recordings = [];
@@ -3565,6 +3732,13 @@ const PROG = (() => {
     readProfile,
     saveProfile(p) { p.updatedAt = new Date().toISOString(); writeProfile(p); return p; },
     profileFields: PROFILE_FIELDS,
+    // Language plumbing (noravels fork, multi-language)
+    activeLang() {
+      const p = readProfile() || {};
+      const langs = p.practiceLanguages || ['tr'];
+      return langs[0] || 'tr';
+    },
+    allLangs() { return (readProfile() || {}).practiceLanguages || ['tr']; },
   };
   return api;
 })();
@@ -3915,6 +4089,8 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
 
   document.getElementById('profSaveBtn').addEventListener('click', () => {
     const sel = currentSelections();
+    // practiceLanguages: at least one language required — default to Turkish
+    if (!sel.practiceLanguages || !sel.practiceLanguages.length) sel.practiceLanguages = ['tr'];
     const existing = PROG.readProfile() || {};
     const merged = { ...existing, ...sel, createdAt: existing.createdAt || new Date().toISOString() };
     PROG.saveProfile(merged);
