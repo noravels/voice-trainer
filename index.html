@@ -182,6 +182,16 @@ body:has(#main.focus-mode) { overflow: hidden; }
 /* Session summary modal */
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
 .modal-overlay.open { display: flex; }
+
+/* Progress dashboard (noravels fork) */
+.prog-bars { display: flex; align-items: flex-end; gap: 4px; height: 90px; padding: 4px 2px 0; }
+.prog-bar { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 8px; }
+.prog-bar-fill { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; min-height: 2px; }
+.prog-bar-lbl { font-size: 9px; color: var(--text2); margin-top: 3px; font-family: monospace; }
+.prog-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.prog-table th { text-align: left; color: var(--text2); font-weight: 600; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+.prog-table td { padding: 4px 8px; border-bottom: 1px solid var(--border); }
+.prog-empty { color: var(--text2); font-size: 13px; padding: 8px 0; }
 .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px 28px; min-width: 320px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
 .modal h2 { font-size: 22px; margin-bottom: 8px; }
 .modal .modal-sub { color: var(--text2); font-size: 14px; margin-bottom: 18px; }
@@ -273,6 +283,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div id="pauseBadge" role="button" tabindex="0" aria-label="Paused — click to resume" title="Click or press Space to resume" style="display:none;background:var(--warning);color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;">PAUSED</div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <button id="progBtn" class="sm" title="Practice history and trends (stored on this device)">Progress</button>
       <button id="pauseToggleBtn" class="sm" title="Pause/resume the graph (Space)" aria-label="Pause or resume the graph">Pause</button>
       <button id="sessionRecBtn" class="sm">Record Session</button>
       <button id="sessionDownload" class="sm" style="display:none">Download Recording</button>
@@ -389,63 +400,186 @@ body:has(#main.focus-mode) { overflow: hidden; }
       </div>
     </div>
   </div>
+
+  <div class="modal-overlay" id="progressOverlay" role="dialog" aria-modal="true" aria-labelledby="progTitle">
+    <div class="modal">
+      <h2 id="progTitle">Progress</h2>
+      <div class="modal-sub">Everything stays on this device. Trend lines are relative to your own history &mdash; never a score.</div>
+      <div class="summary-grid" style="grid-template-columns:repeat(2,1fr);">
+        <div><div class="k">Day streak</div><div class="v" id="progStreak">0</div></div>
+        <div><div class="k">Sessions recorded</div><div class="v" id="progTotal">0</div></div>
+      </div>
+      <div id="progTrend" style="margin:12px 0;"></div>
+      <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Minutes per day (last 3 weeks)</h3>
+      <div class="prog-bars" id="progBars"></div>
+      <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">This session by stage</h3>
+      <table class="prog-table"><thead><tr><th>Stage</th><th>Time</th><th>Target</th></tr></thead><tbody id="progStageTable"></tbody></table>
+      <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Recent sessions</h3>
+      <table class="prog-table"><thead><tr><th>Date</th><th>Time</th><th>Stages</th><th>Brightness</th></tr></thead><tbody id="progRecent"></tbody></table>
+      <div class="modal-actions">
+        <button id="progCloseBtn" class="sm primary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="progressConfirmOverlay" role="dialog" aria-modal="true" aria-labelledby="progConfirmTitle">
+    <div class="modal">
+      <h2 id="progConfirmTitle">Save this session to your progress?</h2>
+      <div class="modal-sub" id="progConfirmMeta"></div>
+      <div class="modal-actions">
+        <button id="progConfirmDiscard" class="sm">Don't save</button>
+        <button id="progConfirmCancel" class="sm">Keep practicing</button>
+        <button id="progConfirmSave" class="sm primary">Save &amp; finish</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- __ROUTINE_START__ -->
 <script>
+// noravels fork: fem / fem+fluid routine (VAMethod-informed), Turkish reading material.
+const TURKISH_SENTENCES = [
+  [
+    'Sabah kahvaltıda genelde çay içerim, kahve daha çok öğleden sonra gelir.',
+    'Bu akşam markete uğrayıp birkaç şey alacağım.',
+    'Dün akşam film izledim ama yarısında uyuyakalmışım.',
+    'Otobüs bu sabah yine gecikti, işe zor yetiştim.',
+    'Hafta sonunda ailemle video görüşmesi yapmayı planlıyoruz.',
+    'Yeni açılan kafede menü oldukça çeşitliymiş.',
+    'Toplantı yarın saat on yerine on bucuğa alındı.',
+    'Akşam yemeğinde çorba ve makarna yapmayı düşünüyorum.',
+  ],
+  [
+    'Kedim sabahları mutlaka yatak odama gelip beni uyandırır.',
+    'Bu kitabı bitirmem için daha iki bölüm kaldı.',
+    'Spor salonuna kayıt oldum ama henüz bir kere gidemedim.',
+    'Hava durumuna göre hafta sonu yağmur bekleniyor.',
+    'Telefonumu dün evde unuttum, bütün gün erişimim olmadı.',
+    'Komşumuz bize ev yapımı börek getirdi, gerçekten lezzetliydi.',
+    'Yeni projeye bu ay başlamayı hedefliyoruz.',
+    'Yürüyüş yaptıktan sonra insan kendini çok daha iyi hissediyor.',
+  ],
+  [
+    'Tatilde denize girmek için erken sabah saatlerini tercih ederim.',
+    'Ders çalışırken sessiz bir ortam beni daha iyi odaklandırıyor.',
+    'Arkadaşlarımla cumartesi günü sinemaya gideceğiz.',
+    'Bu çorba tarifi ilk denememde tam kıvamını buldu.',
+    'Bilgisayarım yavaşlamaya başladı, belki disk dolmuştur.',
+    'Sabah koşuya çıkmak güne güzel bir başlangıç oluyor.',
+    'Tatil planı için henüz kesin bir karar veremedim.',
+    'Öğleden sonra kısa bir şekerleme bile insana iyi geliyor.',
+  ],
+  [
+    'Postanenin kapanış saatini bugün öğrendim, altıda kapanıyormuş.',
+    'Bitkilerimi sulamayı her cuma akşamı rutin hâline getirdim.',
+    'Yeni albümü dinledim, özellikle ikinci şarkı çok hoşuma gitti.',
+    'Eczane köşedeki yerini değiştirmiş, biraz zor buldum.',
+    'Bu kelimenin anlamını sözlükten kontrol etmem gerekiyor.',
+    'Toplu taşımayla gitmek trafiğe göre çok daha hızlı oluyor.',
+    'Akşam saatlerinde parkta yürümek için harika bir hava vardı.',
+    'Kahvaltıda peynir, zeytin ve domates her zaman masamda bulunur.',
+  ],
+  [
+    'Uzun zamandır planladığımız piknik sonunda gerçekleşti.',
+    'Yeni aldığım kulaklık müziği gerçekten çok net gösteriyor.',
+    'Sabah erken kalkmayı bir türlü alışkanlık hâline getiremedim.',
+    'Yemekten sonra kısa bir yürüyüş sindirime çok iyi geliyor.',
+    'Dergide okuduğum yazı bana yeni bir bakış açısı kazandırdı.',
+    'Kütüphanede iki saat çalışıp sonra sahile indim.',
+    'Bu şehirde ulaşım ağı son yıllarda epey gelişti.',
+    'Film eleştirisini okumadan izlemeyi tercih ediyorum.',
+  ],
+  [
+    'Fırından çıkan ekmeğin kokusu bütün evi sarıyor.',
+    'Hafta içi akşamları genelde ders çalışarak geçiyor.',
+    'Deniz kenarında hava serinse bile yürümek keyifli.',
+    'Dün gece elektrikler kesildi, mum yakıp kitap okudum.',
+    'Yeni mahallede bakkal ve fırın çok yakın, şanslıyım.',
+    'Sabah rutinim önce bir bardak su, sonra on dakika esneme.',
+    'Bu uygulama günlük alışkanlıklarımı takip etmeme yardım ediyor.',
+    'Yaz aylarında çatı katı epey ısınıyor, vantilatör şart.',
+  ],
+];
+
+const EMOTION_STARTERS = [
+  'Öfkeli: "Bu iş neden hâlâ bitmedi?!"',
+  'Heyecanlı: "Haberim var, otur bunu duyarsın!"',
+  'Şaşkın: "Vay be, buna inanamıyorum!"',
+  'Alaycı: "Tabii, yine sen haklıydın."',
+  'Teselli edici: yakın bir dostunu sakin sesle rahatlat.',
+  'Korkmuş: evde tek başınayken koridordan ses geldiğini anlat.',
+  'Mutlu: yeni bir işe girdiğini anlat.',
+  'Sinirli ama kontrollü: müşteri hizmetlerini arıyor gibi konuş.',
+  'Şefkatli: evcil hayvanına konuşur gibi seslen.',
+  'Kesin ve net: toplantıda kısa bir talimat ver.',
+  'Utangaç: hoşlandığın birine itirafta bulun.',
+  'Yorgun: gün sonunda arkadaşına telefon açmış gibi konuş.',
+];
+
+const FLUID_STARTERS = [
+  'Cümleyi günlük sesinle başlat, hedef sesle bitir: "Bugün hava nasıl bilmiyorum ama dışarı çıkmam lazım."',
+  'Aynı cümleyi üç kez söyle: günlük ses, sonra hedef ses, sonra tekrar günlük ses.',
+  'Birden ona kadar sayarken rezonansı geri ve öne kaydır; perde sabit kalsın.',
+  'Şarkı söyler gibi: bir dizeleri geri kayıtta söyle, bir sonrakini hedef sesle söyle.',
+  'Şu soruyu iki sesle cevapla, ilk cümle günlük ikincisi hedef: "Bugün nasıldı?"',
+  '"ii" sesini uzatırken parlaklığı ileri geri kaydır; perde sabit kalsın.',
+  'Kısa bir hikâye anlat: anlatıcı hedef seste, diyalog alıntısında ses değişsin.',
+  '60 saniye serbest konuşma: her nefeste rezonansın önde kaldığını kontrol et.',
+];
+
 const ROUTINE = {
-  name: "Voice Training",
+  name: "Voice Trainer — Fem & Fluid",
   client: "",
-  description: "15-minute feminization practice routine with 7 stages",
+  description: "Daily 15\u201320 min routine: warm-up, resonance, volume, Turkish sentences, prosody, fluidity. Progress is tracked on this device.",
 
   stages: [
     { id: 'warmup', name: '1. Warm-up', short: 'Warm-up', type: 'sustained-tone', config: {
-      notes: ['C3','D3','E3','F#3','G#3','A#3'], duration: 10,
-      instruction: 'Sing "ahh" on each note for 10 seconds. Match the target pitch shown on the graph.',
+      notes: ['F3','G3','A3'], duration: 10,
+      instruction: 'Sustain a lazy "ew" (as in "you") on each note for 10 seconds. Keep it buzzy and effortless \u2014 no push, no extra weight.',
       showReference: true
     }},
-    { id: 'counting', name: '2. Counting', short: 'Counting', type: 'repeat-on-note', config: {
-      notes: ['F3','G#3'], reps: 2,
-      instruction: 'Count 1 through 5 with soft vocal weight on the target note. 2 repetitions per note.',
-      showReference: true, display: '1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5'
-    }},
-    { id: 'blend-up', name: '3. Blend Up', short: 'Blend Up', type: 'glide', config: {
-      direction: 'up', startNote: 'F3', zone: { low: 'F3', high: 'E4' },
-      referenceNote: 'F3', minAttempts: 3,
-      instruction: 'Start on F3 in chest voice and glide upward into falsetto. Keep vocal weight consistently light throughout. Record each attempt and listen back.'
-    }},
-    { id: 'blend-down', name: '4. Blend Down', short: 'Blend Down', type: 'glide', config: {
-      direction: 'down', startNote: 'F3', zone: { low: 'C3', high: 'F3' },
-      referenceNote: 'F3', minAttempts: 3,
-      instruction: 'Start in falsetto and glide downward into chest voice. Keep vocal weight consistently light with no cracking. Record each attempt and listen back.'
-    }},
-    { id: 'sentences', name: '5. Sentences', short: 'Sentences', type: 'read-aloud', config: {
-      listsKey: 'sentences', zone: { low: 'F3', high: 'A#3' },
-      instruction: 'Read each sentence inside the target zone (F3\u2013A#3). Aim for soft vocal weight and use all of the range available.',
-      recording: true
-    }},
-    { id: 'resonance', name: '6. Resonance', short: 'Resonance', type: 'resonance', config: {
+    { id: 'resonance', name: '2. Resonance', short: 'Resonance', type: 'resonance', config: {
       note: 'F3',
-      preamble: 'First, practice achieving a truly dark yawn. Make sure your lips don\'t move (use a mirror or camera to check).',
-      instruction: 'On F3, move from dark to bright through these vowels. Keep lips still\u2014only change the inside of your mouth.',
+      preamble: 'First, achieve a dark, yawn-like "ah". Your lips must not move \u2014 check with a mirror or camera.',
+      instruction: 'Now on F3, brighten from dark to bright through these Turkish vowels. Only the inside of the mouth changes \u2014 lips stay still.',
       steps: [
-        { label: 'A', description: 'as in "pay"' },
-        { label: 'E', description: 'as in "see"' },
-        { label: 'O', description: 'as in "toe"' },
-        { label: 'OO', description: 'as in "through"' },
+        { label: 'A', description: 'as in "ada"' },
+        { label: 'E', description: 'as in "ekmek"' },
+        { label: 'İ', description: 'as in "iplik"' },
+        { label: 'O', description: 'as in "oda"' },
+        { label: 'U', description: 'as in "u\u011Fultu"' },
       ],
       showReference: true
     }},
-    { id: 'free', name: '7. Free Practice', short: 'Free', type: 'free-talk', config: {
-      promptsKey: 'starters', zone: { low: 'F3', high: 'A#3' },
-      instruction: 'Put everything together. Answer conversation starters in your target voice. Stay in the target zone with soft vocal weight.',
+    { id: 'volume', name: '3. Volume', short: 'Volume', type: 'repeat-on-note', config: {
+      notes: ['F3','A#3'], reps: 2,
+      instruction: 'Count 1\u20135 projecting louder on each repetition WITHOUT letting the pitch rise or the voice get heavier. Loud lives in resonance, not in height.',
+      showReference: true, display: '1 &nbsp; 2 &nbsp; 3 &nbsp; 4 &nbsp; 5'
+    }},
+    { id: 'sentences', name: '4. Sentences', short: 'Sentences', type: 'read-aloud', config: {
+      listsKey: 'sentences', zone: { low: 'F3', high: 'A#3' },
+      instruction: 'Read each Turkish sentence inside the target zone (F3\u2013A#3). Keep vocal weight light and let the melody move naturally.',
+      recording: true
+    }},
+    { id: 'prosody', name: '5. Prosody & Emotion', short: 'Prosody', type: 'free-talk', config: {
+      promptsKey: 'emotionStarters', zone: { low: 'F3', high: 'A#3' },
+      instruction: 'Say the quoted Turkish line with the named emotion. Keep the pitch inside the zone \u2014 emotion comes from brightness and melody, not from pitch height.',
+      recording: true
+    }},
+    { id: 'fluid', name: '6. Fluidity', short: 'Fluid', type: 'free-talk', config: {
+      promptsKey: 'fluidStarters', zone: { low: 'E3', high: 'C4' },
+      instruction: 'Fluidity drill: move between your everyday voice and your target voice on purpose. A wider zone is fine \u2014 the goal is controlled switching.',
       recording: true
     }},
   ],
 
-  sentences: null, // set after data arrays load
+  sentences: TURKISH_SENTENCES, // direct: HARVARD_DATA stays as engine fallback
+  emotionStarters: EMOTION_STARTERS,
+  fluidStarters: FLUID_STARTERS,
   starters: null,
 };
+// Starter prompts are plain strings; wire them in the same place the engine
+// binds its built-in data arrays (below), after ROUTINE is consumed.
 </script>
 <!-- __ROUTINE_END__ -->
 
@@ -628,6 +762,9 @@ const STARTERS_DATA = [
 // Wire data arrays into ROUTINE (kept here to avoid bloating the replaceable ROUTINE block)
 if (ROUTINE.sentences === null) ROUTINE.sentences = HARVARD_DATA;
 if (ROUTINE.starters === null) ROUTINE.starters = STARTERS_DATA;
+// noravels fork: free-talk stages reference their prompt arrays by key.
+if (ROUTINE.emotionStarters === undefined || ROUTINE.emotionStarters === null) ROUTINE.emotionStarters = STARTERS_DATA;
+if (ROUTINE.fluidStarters === undefined || ROUTINE.fluidStarters === null) ROUTINE.fluidStarters = STARTERS_DATA;
 
 // ─── AUDIO ENGINE ────────────────────────────────────────────────────
 let audioCtx = null;
@@ -1847,7 +1984,7 @@ function renderGlide(el, stage) {
     if (isExRecording) {
       isExRecording = false;
       const url = await engine.stopRecording();
-      if (url) { stageState.attempts++; stageState.recordings.push(url); }
+      if (url) { stageState.attempts++; stageState.recordings.push(url); PROG.saveRecording(); }
       engine.rerender();
     } else {
       isExRecording = true;
@@ -1915,7 +2052,7 @@ function renderReadAloud(el, stage) {
       if (isExRecording) {
         isExRecording = false;
         const url = await engine.stopRecording();
-        if (url) stageState.recordings.push(url);
+        if (url) { stageState.recordings.push(url); PROG.saveRecording(); }
         engine.rerender();
       } else {
         isExRecording = true;
@@ -2000,7 +2137,7 @@ function renderFreeTalk(el, stage) {
       if (isExRecording) {
         isExRecording = false;
         const url = await engine.stopRecording();
-        if (url) stageState.recordings.push(url);
+        if (url) { stageState.recordings.push(url); PROG.saveRecording(); }
         engine.rerender();
       } else {
         isExRecording = true;
@@ -2087,6 +2224,13 @@ async function setStage(n) {
   updateNavButtons();
 }
 
+// Per-second stage-time accrual for the progress layer (noravels fork)
+setInterval(() => {
+  if (!sessionStartTime) return;
+  if (graphPaused) PROG.sessionActive(); // keep lastTick fresh so pause time isn't billed later
+  else PROG.stageActive(ROUTINE.stages[currentStage].id);
+}, 1000);
+
 function updateNavButtons() {
   document.getElementById('prevBtn').disabled = currentStage === 0;
   document.getElementById('nextBtn').textContent = currentStage === ROUTINE.stages.length - 1 ? 'Finish' : 'Next Stage';
@@ -2094,6 +2238,7 @@ function updateNavButtons() {
 
 function completeStage() {
   stagesCompleted.add(currentStage);
+  PROG.markComplete(ROUTINE.stages[currentStage].id);
   if (currentStage < ROUTINE.stages.length - 1) setStage(currentStage + 1);
   else renderStageNav();
 }
@@ -2279,6 +2424,7 @@ function mainLoop() {
 
   if (vizMode === 'spectro') renderSpectrogram();
   else renderGraph();
+  updateBrightnessMeter();
   animFrame = requestAnimationFrame(mainLoop);
 }
 
@@ -2811,7 +2957,259 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   });
 }
+
+// ─── PROGRESS LAYER (noravels fork) ───────────────────────────────────
+// Per-session metrics live in sessionStorage; long-term history lives in
+// localStorage. Exercise recordings go to IndexedDB so they survive reloads.
+// Nothing leaves the device.
+const PROG = (() => {
+  const LS_KEY = 'vt_progress_v1';
+  const ss = window.sessionStorage;
+  const ls = (() => { try { return window.localStorage; } catch (e) { return null; } })();
+
+  const freshSession = () => ({ date: new Date().toISOString(), activeMs: 0, lastTick: null,
+    stageMs: {}, brightMs: 0, brightFrames: 0, completed: [], recordingsSaved: 0 });
+
+  // current-session state (sessionStorage survives reloads within the tab)
+  let cur = null;
+  try { cur = JSON.parse(ss.getItem('vtSession') || 'null'); } catch (e) {}
+  if (!cur || !cur.date) cur = freshSession();
+  let dirty = false;
+  setInterval(() => { if (dirty) { dirty = false; try { ss.setItem('vtSession', JSON.stringify(cur)); } catch (e) {} } }, 1500);
+
+  function readHistory() {
+    if (!ls) return [];
+    try { return JSON.parse(ls.getItem(LS_KEY) || '[]'); } catch (e) { return []; }
+  }
+  function saveHistory() {
+    if (!ls) return;
+    const h = readHistory();
+    h.push({ date: cur.date, activeMs: cur.activeMs, stageMs: cur.stageMs,
+             completed: [...cur.completed],
+             brightness: cur.brightFrames > 0 ? cur.brightMs / cur.brightFrames : null,
+             recordingsSaved: cur.recordingsSaved });
+    try { ls.setItem(LS_KEY, JSON.stringify(h.slice(-500))); } catch (e) {}
+  }
+  function dayKey(ts) { const d = new Date(ts); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function streak() {
+    const h = readHistory().filter(s => s.activeMs >= 120000);
+    if (!h.length) return 0;
+    const days = [...new Set(h.map(s => dayKey(s.date)))].sort();
+    let n = 1;
+    for (let i = days.length - 1; i > 0; i--) {
+      const gap = (new Date(days[i] + 'T12:00:00') - new Date(days[i - 1] + 'T12:00:00')) / 86400000;
+      if (gap === 1) n++; else break;
+    }
+    return n;
+  }
+
+  const api = {
+    snapshot() { return { activeMs: cur.activeMs, stageMs: { ...cur.stageMs }, completed: [...cur.completed], recordingsSaved: cur.recordingsSaved }; },
+    sessionActive() { cur.lastTick = Date.now(); dirty = true; },
+    stageActive(id) {
+      const now = Date.now();
+      if (cur.lastTick) cur.activeMs += Math.min(now - cur.lastTick, 10000); // cap: throttled tabs don't bill idle time
+      cur.lastTick = now;
+      cur.stageMs[id] = (cur.stageMs[id] || 0) + 1000;
+      dirty = true;
+    },
+    recordBrightness(ratio, voiced) {
+      if (voiced) { cur.brightMs += ratio; cur.brightFrames++; }
+      dirty = true;
+    },
+    brightnessTrend() {
+      const h = readHistory().filter(s => s.brightness != null).slice(-10);
+      if (h.length < 2) return null;
+      const half = Math.max(1, Math.floor(h.length / 2));
+      const avg = a => a.reduce((x, s) => x + s.brightness, 0) / a.length;
+      const before = avg(h.slice(0, half)), after = avg(h.slice(half));
+      return { before, after, delta: after - before, count: h.length };
+    },
+    markComplete(id) { if (!cur.completed.includes(id)) { cur.completed.push(id); dirty = true; } },
+    saveRecording() { cur.recordingsSaved++; dirty = true; },
+    finalizeSession() {
+      if (cur.activeMs < 30000) return false; // under 30s of practice: not a history entry
+      saveHistory();
+      cur = freshSession();
+      try { ss.removeItem('vtSession'); } catch (e) {}
+      return true;
+    },
+    discardSession() { cur = freshSession(); try { ss.removeItem('vtSession'); } catch (e) {} },
+    readHistory, streak, dayKey,
+  };
+  return api;
+})();
+
+// ── Brightness meter (band energy ratio) ──
+// Ratio of high-band (2.5k–5.5k) to mid/low (0.2k–1k) energy. Not a score —
+// a per-session trend line only. Values are meaningful relative to your own
+// history; frames count only while the mic picks up sound.
+function updateBrightnessMeter() {
+  if (!analyser || !spectroFreqData || !audioCtx) return;
+  const binHz = audioCtx.sampleRate / analyser.fftSize;
+  const binOf = hz => Math.max(0, Math.floor(hz / binHz));
+  const loI = binOf(200), midI = binOf(1000);
+  const hiI = Math.min(binOf(5500), spectroFreqData.length - 1);
+  let mid = 0, hi = 0;
+  for (let i = loI; i < midI; i++) mid += Math.pow(10, spectroFreqData[i] / 20);
+  for (let i = midI + 1; i < hiI; i++) hi += Math.pow(10, spectroFreqData[i] / 20);
+  const nMid = midI - loI, nHi = hiI - midI - 1;
+  if (nMid <= 0 || nHi <= 0) return;
+  const midAvg = mid / nMid, hiAvg = hi / nHi;
+  if (midAvg < 1e-5) return; // silence — skip the frame
+  const ratio = Math.min(hiAvg / midAvg, 4);
+  PROG.recordBrightness(ratio, true);
+}
+
+// ── Dashboard ──
+function openProgressDashboard() {
+  const ov = document.getElementById('progressOverlay');
+  const h = PROG.readHistory();
+  const streakN = PROG.streak();
+  const trend = PROG.brightnessTrend();
+  const snap = PROG.snapshot();
+
+  const days = {};
+  h.forEach(s => { const k = PROG.dayKey(s.date); (days[k] = days[k] || []).push(s); });
+  const dayKeys = Object.keys(days).slice(-21);
+  const maxMin = Math.max(1, ...dayKeys.map(k => days[k].reduce((x, s) => x + s.activeMs, 0) / 60000));
+  const bars = dayKeys.map(k => {
+    const mins = days[k].reduce((x, s) => x + s.activeMs, 0) / 60000;
+    const pct = Math.max(4, Math.round(mins / maxMin * 100));
+    return `<div class="prog-bar" title="${k}: ${mins.toFixed(1)} min"><div class="prog-bar-fill" style="height:${pct}%"></div><div class="prog-bar-lbl">${k.slice(8)}</div></div>`;
+  }).join('');
+
+  let trendHtml = '<div class="prog-empty">Not enough data yet \u2014 the trend appears after a few recorded sessions.</div>';
+  if (trend && Math.abs(trend.delta) > 0.005) {
+    const dir = trend.delta > 0 ? '\u2197 brighter' : '\u2198 darker';
+    const col = trend.delta > 0 ? 'var(--success)' : 'var(--accent)';
+    trendHtml = `<div style="font-size:15px;">Recent sessions trend <b style="color:${col};">${dir}</b> than earlier ones <span style="color:var(--text2);">(relative, last ${trend.count} sessions)</span></div>`;
+  } else if (trend) {
+    trendHtml = '<div style="font-size:15px;">Recent sessions hold a <b>steady brightness</b> <span style="color:var(--text2);">(relative, last ' + trend.count + ' sessions)</span></div>';
+  }
+
+  const curZones = (typeof graphZone === 'object' && graphZone) ? { [ROUTINE.stages[currentStage].id]: graphZone } : {};
+  const stageRows = ROUTINE.stages.map(st => {
+    const ms = (snap.stageMs && snap.stageMs[st.id]) || 0;
+    const z = curZones[st.id];
+    const zTxt = z ? `${z.low}\u2013${z.high}` : '\u2014';
+    return `<tr><td>${st.short}</td><td>${Math.floor(ms / 60000)}m ${Math.floor(ms / 1000) % 60}s</td><td>${zTxt}</td></tr>`;
+  }).join('');
+
+  const recent = h.slice(-7).reverse().map(s => {
+    const d = new Date(s.date);
+    const mins = (s.activeMs / 60000).toFixed(1);
+    return `<tr><td>${d.toLocaleDateString()}</td><td>${mins} min</td><td>${s.completed.length}/${ROUTINE.stages.length}</td><td>${s.brightness != null ? s.brightness.toFixed(2) : '\u2014'}</td></tr>`;
+  }).join('') || '<tr><td colspan="4" style="color:var(--text2)">No sessions recorded yet.</td></tr>';
+
+  document.getElementById('progStreak').textContent = streakN;
+  document.getElementById('progTotal').textContent = h.length;
+  document.getElementById('progTrend').innerHTML = trendHtml;
+  document.getElementById('progBars').innerHTML = bars || '<div class="prog-empty">No data yet.</div>';
+  document.getElementById('progStageTable').innerHTML = stageRows;
+  document.getElementById('progRecent').innerHTML = recent;
+  ov.classList.add('open');
+  setTimeout(() => document.getElementById('progCloseBtn').focus(), 0);
+}
+
+// ── Finalize-session confirm modal ──
+function showProgressConfirm(mode) {
+  const ov = document.getElementById('progressConfirmOverlay');
+  const snap = PROG.snapshot();
+  const m = Math.floor(snap.activeMs / 60000), s = Math.floor(snap.activeMs / 1000) % 60;
+  document.getElementById('progConfirmMeta').innerHTML =
+    `Duration <b>${m}m ${s}s</b> \u00b7 ${snap.completed.length}/${ROUTINE.stages.length} stages \u00b7 ${snap.recordingsSaved} recording${snap.recordingsSaved === 1 ? '' : 's'}`;
+  ov.dataset.mode = mode;
+  ov.classList.add('open');
+  setTimeout(() => document.getElementById('progConfirmSave').focus(), 0);
+}
+function hideProgressConfirm() { document.getElementById('progressConfirmOverlay').classList.remove('open'); }
+function confirmAndThen(mode, proceed, afterCancel) {
+  showProgressConfirm(mode);
+  const ov = document.getElementById('progressConfirmOverlay');
+  const onSave = () => { cleanup(); PROG.finalizeSession(); proceed(); };
+  const onDiscard = () => { cleanup(); PROG.discardSession(); proceed(); };
+  const onCancel = () => { cleanup(); if (afterCancel) afterCancel(); };
+  function cleanup() {
+    ov.removeEventListener('prog:save', onSave);
+    ov.removeEventListener('prog:discard', onDiscard);
+    ov.removeEventListener('prog:cancel', onCancel);
+    hideProgressConfirm();
+  }
+  ov.addEventListener('prog:save', onSave);
+  ov.addEventListener('prog:discard', onDiscard);
+  ov.addEventListener('prog:cancel', onCancel);
+}
+document.getElementById('progConfirmSave').addEventListener('click', () => {
+  document.getElementById('progressConfirmOverlay').dispatchEvent(new Event('prog:save'));
+});
+document.getElementById('progConfirmDiscard').addEventListener('click', () => {
+  document.getElementById('progressConfirmOverlay').dispatchEvent(new Event('prog:discard'));
+});
+document.getElementById('progConfirmCancel').addEventListener('click', () => {
+  document.getElementById('progressConfirmOverlay').dispatchEvent(new Event('prog:cancel'));
+});
+document.getElementById('progressConfirmOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('progressConfirmOverlay').dispatchEvent(new Event('prog:cancel'));
+});
+
+// ── Route Finish / New Session through the progress gate ──
+// The original handlers were registered earlier on the same elements; cloning
+// and replacing the nodes drops them so the gate fully owns these flows.
+(function gateButtons() {
+  const nextBtn = document.getElementById('nextBtn');
+  const nextClone = nextBtn.cloneNode(true);
+  nextBtn.replaceWith(nextClone);
+  nextClone.addEventListener('click', () => {
+    if (progressGateBusy) return;
+    if (currentStage === ROUTINE.stages.length - 1) {
+      progressGateBusy = true;
+      stagesCompleted.add(currentStage);
+      renderStageNav();
+      confirmAndThen('finish',
+        () => { progressGateBusy = false; showSessionSummary(); },
+        () => { progressGateBusy = false; });
+    } else {
+      completeStage();
+    }
+  });
+
+  const rsBtn = document.getElementById('summaryRestartBtn');
+  const rsClone = rsBtn.cloneNode(true);
+  rsBtn.replaceWith(rsClone);
+  rsClone.addEventListener('click', () => {
+    if (document.getElementById('progressConfirmOverlay').classList.contains('open')) return;
+    confirmAndThen('restart', () => {
+      hideSessionSummary();
+      // Reset routine progress but keep audio running (mirrors the original restart handler).
+      stagesCompleted.clear();
+      stageStates = {};
+      stageState = {};
+      currentStage = 0;
+      sessionStartTime = Date.now();
+      renderStageNav();
+      renderCurrentStage();
+      updateNavButtons();
+    });
+  });
+})();
+let progressGateBusy = false;
+
+// Dashboard button
+document.getElementById('progBtn').addEventListener('click', openProgressDashboard);
+document.getElementById('progCloseBtn').addEventListener('click', () => document.getElementById('progressOverlay').classList.remove('open'));
+document.getElementById('progressOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) document.getElementById('progressOverlay').classList.remove('open');
+});
+// Esc closes progress modals too
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  const po = document.getElementById('progressOverlay');
+  const pc = document.getElementById('progressConfirmOverlay');
+  if (pc.classList.contains('open')) { hideProgressConfirm(); return; }
+  if (po.classList.contains('open')) { po.classList.remove('open'); return; }
+});
 </script>
-<div class="app-footer">v1.4.0 &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
+<div class="app-footer">v1.4.0 (noravels fem-fluid fork) &copy; Aida Paul &lt;<a href="mailto:aida.paul@proton.me">aida.paul@proton.me</a>&gt; &mdash; BSD License</div>
 </body>
 </html>
