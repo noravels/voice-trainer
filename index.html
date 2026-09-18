@@ -141,6 +141,22 @@ select { font-family: inherit; background: var(--surface2); color: var(--text); 
 .rec-archive .rec-meta { flex: 1; min-width: 0; font-size: 11px; color: var(--text2); font-family: monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rec-archive audio { height: 32px; max-width: 240px; }
 .rec-dl { color: var(--accent); font-size: 12px; text-decoration: none; padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; }
+.rec-ab-btn { padding: 2px 8px; font-size: 11px; border-radius: 4px; }
+.rec-ab-btn.active { background: var(--target); border-color: var(--target); color: #000; font-weight: 700; }
+.rec-item.ab-sel { border-left: 3px solid var(--target); padding-left: 8px; }
+.rec-del { padding: 2px 8px; font-size: 14px; color: var(--text2); background: none; border: none; }
+.rec-del:hover { color: var(--danger); }
+.rec-filters { display: flex; gap: 6px; margin-bottom: 8px; }
+.rf-btn { padding: 3px 12px; font-size: 12px; border-radius: 12px; }
+.rf-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.ab-compare { background: var(--surface2); border: 1px solid var(--target); border-radius: 10px; padding: 12px 14px; margin-bottom: 10px; }
+.ab-title { font-size: 13px; font-weight: 700; color: var(--target); margin-bottom: 8px; }
+.ab-row { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+.ab-side { flex: 1; min-width: 200px; }
+.ab-lab { font-size: 11px; color: var(--text2); font-family: monospace; margin-bottom: 4px; }
+.ab-side audio { width: 100%; height: 36px; }
+.ab-swap-wrap { display: flex; align-items: center; }
+.ab-note { font-size: 12px; color: var(--text2); margin-top: 8px; }
 .rec-item:last-child { border-bottom: none; }
 .rec-item span { font-size: 13px; color: var(--text2); }
 .rec-item audio { height: 40px; flex: 1; min-width: 0; }
@@ -256,6 +272,7 @@ body:has(#main.focus-mode) { overflow: hidden; }
 <div id="splash">
   <h1 id="splashTitle">Voice Training</h1>
   <div id="onboardIntro" style="display:none;"></div>
+  <div id="lastPracticeStrip" style="display:none;font-size:13px;color:var(--text2);max-width:460px;"></div>
   <p id="splashDesc">Real-time pitch detection, guided exercises, and recording.</p>
   <p id="splashClient" style="display:none;color:var(--accent);font-weight:600;"></p>
   <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text2);">
@@ -471,6 +488,12 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">This session by stage</h3>
       <table class="prog-table"><thead><tr><th>Stage</th><th>Time</th><th>Target</th></tr></thead><tbody id="progStageTable"></tbody></table>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Recording archive (on this device)</h3>
+      <div class="rec-filters">
+        <button class="rf-btn active" data-f="all">All</button>
+        <button class="rf-btn" data-f="benchmark">Benchmark</button>
+        <button class="rf-btn" data-f="exercises">Exercises</button>
+      </div>
+      <div class="ab-compare" id="abCompareBox" style="display:none;"></div>
       <div id="progRecArchive" class="rec-archive"></div>
       <h3 style="font-size:13px;color:var(--text2);margin:14px 0 6px;">Recent sessions</h3>
       <table class="prog-table"><thead><tr><th>Date</th><th>Time</th><th>Stages</th><th>Brightness</th></tr></thead><tbody id="progRecent"></tbody></table>
@@ -545,6 +568,22 @@ body:has(#main.focus-mode) { overflow: hidden; }
       <div class="modal-actions">
         <button id="profCloseBtn" class="sm">Cancel</button>
         <button id="profSaveBtn" class="sm primary">Save profile</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="dataOverlay" role="dialog" aria-modal="true" aria-labelledby="dataTitle">
+    <div class="modal">
+      <h2 id="dataTitle">Backup &amp; restore</h2>
+      <div class="modal-sub">Your progress, profile, and recordings never leave this device automatically. Export everything into a single file when switching devices; importing config/json keeps this app device-local.</div>
+      <div class="modal-actions" style="flex-direction:column;gap:10px;align-items:stretch;">
+        <button id="dataExportBtn" class="primary">Export backup (JSON + recordings)</button>
+        <button id="dataImportBtn">Import backup</button>
+        <input type="file" id="dataImportFile" accept="application/json" style="display:none;">
+        <div id="dataMsg" style="font-size:12px;color:var(--text2);min-height:16px;"></div>
+      </div>
+      <div class="modal-actions">
+        <button id="dataCloseBtn" class="sm">Close</button>
       </div>
     </div>
   </div>
@@ -628,6 +667,14 @@ const EMOTION_STARTERS = [
   'Kesin ve net: toplantıda kısa bir talimat ver.',
   'Utangaç: hoşlandığın birine itirafta bulun.',
   'Yorgun: gün sonunda arkadaşına telefon açmış gibi konuş.',
+  'Kısa ve gündelik: "Nasılsın?" sorusuna samimi bir cevap ver.',
+  'Telefon sesi: kargoya telefon açıp kargonun nerede olduğunu sor.',
+  'Kahvehane sohbeti: son maçın sonucunu anlat (tempolu ve kendinden emin).',
+  'Görüşme: iş görüşmesinde kendini kısa ve net tanıt.',
+  'Şaşırmış: "Hadi ama, gerçekten mi?" tonunda bir arkadaşına tepki ver.',
+  'Onaylayan: "Tamam, anlaştık" der gibi net ve sakin bitir.',
+  'Esnemiş: sabah yorgun uyanmış gibi tek kelimelik cevaplar ver ("hı", "tamam", "yok").',
+  'Duygusal: kısa bir veda mesajını sesli oku.',
 ];
 
 const FLUID_STARTERS = [
@@ -1334,7 +1381,8 @@ const RECDB = (() => {
             const c = ev.target.result;
             if (c && out.length < n) {
               out.push({ id: c.key, week: c.value.week, stage: c.value.stage,
-                         blobUrl: null, blob: c.value.blob, date: c.value.date });
+                         kind: c.value.kind, date: c.value.date,
+                         blobUrl: null, blob: c.value.blob });
               c.continue();
             } else resolve(out);
           };
@@ -1353,6 +1401,17 @@ const RECDB = (() => {
         });
       } catch (e) { return false; }
     },
+    async deleteOne(id) {
+      try {
+        const d = await db();
+        return new Promise(resolve => {
+          const tx = d.transaction('recordings', 'readwrite');
+          const req = tx.objectStore('recordings').delete(id);
+          req.onsuccess = () => resolve(true);
+          req.onerror = () => resolve(false);
+        });
+      } catch (e) { return false; }
+    },
   };
 })();
 
@@ -1360,8 +1419,9 @@ const RECDB = (() => {
 async function persistExerciseRecording(blob, stageId, extra) {
   PROG.saveRecording();
   const week = RECDB.weekKey(Date.now());
-  await RECDB.save(blob, { stage: stageId, date: new Date().toISOString(), kind: 'exercise' });
-  return { week, stage: stageId };
+  const kind = stageId === 'benchmark' ? 'benchmark' : 'exercise';
+  await RECDB.save(blob, { stage: stageId, date: new Date().toISOString(), kind });
+  return { week, stage: stageId, kind };
 }
 
 function startExerciseRec() {
@@ -3381,26 +3441,105 @@ function updateBrightnessMeter() {
 
 // ── Dashboard ──
 let _recArchiveUrlPool = [];
+let _recArchiveItems = [];
+let _recFilter = 'all';
+let _abSelection = new Set();
+let _abOrder = [];
 function recArchiveEls() {
   const box = document.getElementById('progRecArchive');
   if (!box) return;
-  box.innerHTML = '<div class="prog-empty">Loading archive\u2026</div>';
-  RECDB.listRecent(20).then(items => {
+  RECDB.listRecent(200).then(items => {
     // Revoke previous URLs so repeated opens don't leak.
     _recArchiveUrlPool.forEach(u => URL.revokeObjectURL(u));
     _recArchiveUrlPool = [];
-    if (!items.length) {
+    _recArchiveItems = items;
+    if (_recFilter === 'all' && items.length === 0) {
       box.innerHTML = '<div class="prog-empty">No archived recordings yet \u2014 they appear here after you save exercise recordings.</div>';
       return;
     }
-    const rows = items.map((it, i) => {
+    const filtered = _recFilter === 'all' ? items
+      : _recFilter === 'benchmark' ? items.filter(i => i.kind === 'benchmark')
+      : items.filter(i => i.kind !== 'benchmark');
+    if (!filtered.length) {
+      box.innerHTML = `<div class="prog-empty">Nothing in this filter. (${opts[_recFilter] || ''})</div>`;
+      return;
+    }
+    const rows = filtered.map(it => {
       const url = URL.createObjectURL(it.blob);
       _recArchiveUrlPool.push(url);
+      it.url = url;
       const d = new Date(it.date);
       const stageName = (ROUTINE.stages.find(s => s.id === it.stage) || {}).short || it.stage;
-      return `<div class="rec-item"><span class="rec-meta">${RECDB.weekKey(it.date)} \u00b7 ${stageName} \u00b7 ${d.toLocaleString()}</span><audio controls src="${url}"></audio><a class="rec-dl" href="${url}" download="vt-${it.stage}-${d.toISOString().slice(0, 16).replace(/[:T]/g, '-')}.${recorderExt(RECORDER_MIME)}">save</a></div>`;
+      const abSel = _abSelection.has(it.id);
+      return `<div class="rec-item ${abSel ? 'ab-sel' : ''}">
+        <button class="rec-ab-btn ${abSel ? 'active' : ''}" data-rec-id="${it.id}" title="Toggle A/B selection" aria-pressed="${abSel}">A/B</button>
+        <span class="rec-meta">${it.kind === 'benchmark' ? '\u23f1' : '\u2022'} ${it.week} \u00b7 ${stageName} \u00b7 ${d.toLocaleString()}</span>
+        <audio controls src="${url}"></audio>
+        <a class="rec-dl" href="${url}" download="vt-${it.stage}-${d.toISOString().slice(0, 16).replace(/[:T]/g, '-')}.${recorderExt(RECORDER_MIME)}">save</a>
+        <button class="rec-del" data-rec-id="${it.id}" title="Delete this recording">\u00d7</button>
+      </div>`;
     }).join('');
     box.innerHTML = rows;
+    // wire buttons
+    document.querySelectorAll('.rf-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.rf-btn').forEach(x => x.classList.remove('active'));
+        b.classList.add('active');
+        _recFilter = b.dataset.f;
+        recArchiveEls();
+      });
+    });
+    box.querySelectorAll('.rec-ab-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const id = Number(b.dataset.recId);
+        if (_abSelection.has(id)) { _abSelection.delete(id); _abOrder = _abOrder.filter(x => x !== id); }
+        else {
+          _abSelection.add(id); _abOrder.push(id);
+          if (_abSelection.size > 2) { const drop = _abOrder.shift(); _abSelection.delete(drop); }
+        }
+        renderAbComparison(); recArchiveEls();
+      });
+    });
+    box.querySelectorAll('.rec-del').forEach(b => {
+      b.addEventListener('click', () => {
+        const id = Number(b.dataset.recId);
+        RECDB.deleteOne(id).then(() => recArchiveEls());
+      });
+    });
+  });
+}
+const opts = { all: 'all recordings', benchmark: 'benchmark', exercises: 'exercises' };
+function renderAbComparison() {
+  const box = document.getElementById('abCompareBox');
+  if (!box) return;
+  let sel = _recArchiveItems.filter(i => _abSelection.has(i.id));
+  if (_abOrder.length === sel.length && sel.length === 2) {
+    sel = [_recArchiveItems.find(i => i.id === _abOrder[0]), _recArchiveItems.find(i => i.id === _abOrder[1])];
+  }
+  if (sel.length < 2) {
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+  box.style.display = 'block';
+  const [a, b] = sel;
+  const label = it => {
+    const d = new Date(it.date);
+    const stageName = (ROUTINE.stages.find(s => s.id === it.stage) || {}).short || it.stage;
+    return `${it.week} \u00b7 ${stageName} \u00b7 ${d.toLocaleDateString()}`;
+  };
+  box.innerHTML = `
+    <div class="ab-title">A/B compare</div>
+    <div class="ab-row">
+      <div class="ab-side"><div class="ab-lab">A \u00b7 ${label(a)}</div><audio controls src="${a.url}"></audio></div>
+      <div class="ab-swap-wrap"><button id="abSwapBtn" class="sm" title="Swap A and B">\u21c4</button></div>
+      <div class="ab-side"><div class="ab-lab">B \u00b7 ${label(b)}</div><audio controls src="${b.url}"></audio></div>
+    </div>
+    <div class="ab-note">Tip: play A fully, then play B. Ear fatigue biases quick alternation \u2014 swap and listen again.</div>
+  `;
+  document.getElementById('abSwapBtn').addEventListener('click', () => {
+    _abOrder = [..._abOrder].reverse();
+    renderAbComparison();
   });
 }
 function openProgressDashboard() {
@@ -3647,12 +3786,36 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
     updateBaselineRow();
   });
 
+  // "Son pratik" reminder strip on the splash (steps toward a daily habit cue)
+  function updateLastPracticeStrip() {
+    const el = document.getElementById('lastPracticeStrip');
+    if (!el) return;
+    const h = PROG.readHistory();
+    const today = PROG.dayKey(Date.now());
+    const todayMs = h.filter(s => PROG.dayKey(s.date) === today).reduce((x, s) => x + s.activeMs, 0);
+    const last = h.length ? h[h.length - 1] : null;
+    if (last) {
+      const gapDays = Math.round((new Date(PROG.dayKey(Date.now()) + 'T12:00:00') - new Date(PROG.dayKey(last.date) + 'T12:00:00')) / 86400000);
+      const dayStr = gapDays === 0 ? 'today' : gapDays === 1 ? 'yesterday' : gapDays + ' days ago';
+      const minsToday = Math.round(todayMs / 60000);
+      const target = 15;
+      el.innerHTML = minsToday > 0
+        ? `Last practiced <b>${dayStr}</b> \u00b7 ${minsToday} min today \u00b7 a gentle nudge: 15\u201320 quality minutes beats an hour of strain.`
+        : `Last practiced <b>${dayStr}</b> \u00b7 short and steady wins: aim for ~${target} quality minutes.`;
+    } else {
+      el.textContent = 'First session ahead \u2014 short and gentle is perfect for day one.';
+    }
+    el.style.display = '';
+  }
+  window.__updateLastPracticeStrip = updateLastPracticeStrip;
+
   window.__maybeRunOnboarding = function() {
     const p = PROG.readProfile();
     if (p && p.goal && p.goal.length) {
       document.getElementById('onboardIntro').style.display = 'none';
       document.getElementById('splashDesc').style.display = '';
       document.getElementById('onboardBaseline').style.display = 'none';
+      updateLastPracticeStrip();
       return;
     }
     // First visit: collapse the how-to into the intro card and open profile first
@@ -3671,6 +3834,102 @@ document.getElementById('progressOverlay').addEventListener('click', e => {
 
 // Onboarding gate: runs at splash, before user can start a session
 window.__maybeRunOnboarding();
+
+// ── Backup & restore (noravels fork) ──
+// progress history + profile + recordings (base64) in one JSON file.
+(function initDataTools() {
+  const overlay = document.getElementById('dataOverlay');
+  document.getElementById('profileBtn');
+
+  // small trigger from profile modal footer? Keep an entry in dashboard:
+  const dashActions = document.querySelector('#progressOverlay .modal-actions');
+  if (dashActions) {
+    const link = document.createElement('button');
+    link.className = 'sm';
+    link.textContent = 'Backup & restore\u2026';
+    link.addEventListener('click', () => {
+      document.getElementById('progressOverlay').classList.remove('open');
+      overlay.classList.add('open');
+    });
+    dashActions.prepend(link);
+  }
+
+  function b64FromBlob(blob) {
+    return new Promise(resolve => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result).split(',')[1]);
+      fr.readAsDataURL(blob);
+    });
+  }
+
+  document.getElementById('dataExportBtn').addEventListener('click', async () => {
+    const msg = document.getElementById('dataMsg');
+    msg.textContent = 'Collecting\u2026';
+    try {
+      const recs = await RECDB.listRecent(10000);
+      const payloads = [];
+      for (const it of recs) {
+        payloads.push({ stage: it.stage, kind: it.kind, week: it.week, date: it.date,
+                        b64: await b64FromBlob(it.blob), type: it.blob.type });
+      }
+      const pack = {
+        app: 'voice-trainer-noravels', version: 1,
+        exportedAt: new Date().toISOString(),
+        profile: PROG.readProfile(),
+        history: PROG.readHistory(),
+        recordings: payloads,
+      };
+      const blob = new Blob([JSON.stringify(pack)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'voice-trainer-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+      msg.textContent = `Exported ${payloads.length} recording(s) + ${pack.history.length} session(s) + profile.`;
+    } catch (e) {
+      msg.textContent = 'Export failed: ' + e.message;
+    }
+  });
+
+  document.getElementById('dataImportBtn').addEventListener('click', () => document.getElementById('dataImportFile').click());
+  document.getElementById('dataImportFile').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const msg = document.getElementById('dataMsg');
+    msg.textContent = 'Importing\u2026';
+    try {
+      const pack = JSON.parse(await file.text());
+      if (pack.app !== 'voice-trainer-noravels') throw new Error('Not a voice-trainer backup');
+      if (!confirm(`Import ${pack.recordings.length} recordings + ${pack.history.length} sessions? Existing data will be kept and merged.`)) return;
+      // merge history (dedupe by date)
+      const curHist = PROG.readHistory();
+      const dates = new Set(curHist.map(s => s.date));
+      const merged = curHist.concat((pack.history || []).filter(s => !dates.has(s.date)));
+      try { localStorage.setItem('vt_progress_v1', JSON.stringify(merged.slice(-500))); } catch (err) {}
+      // merge profile fields gently
+      if (pack.profile) {
+        const cur = PROG.readProfile() || {};
+        PROG.saveProfile({ ...cur, ...pack.profile });
+      }
+      // merge recordings
+      let n = 0;
+      for (const r of (pack.recordings || [])) {
+        await RECDB.save(b64ToBlob(r.b64, r.type), { stage: r.stage, kind: r.kind, week: r.week, date: r.date });
+        n++;
+      }
+      msg.textContent = `Imported: ${merged.length} sessions, profile, ${n} recordings.`;
+    } catch (err) {
+      msg.textContent = 'Import failed: ' + err.message;
+    }
+  });
+  function b64ToBlob(b64, type) {
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type });
+  }
+  document.getElementById('dataCloseBtn').addEventListener('click', () => overlay.classList.remove('open'));
+  overlay.addEventListener('click', e => { if (e.target === e.currentTarget) overlay.classList.remove('open'); });
+})();
 // Esc closes progress modals too
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
